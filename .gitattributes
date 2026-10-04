@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# Preserve exact userscript bytes: release manifests hash the installed files.
+*.user.js -text
+*.png binary
