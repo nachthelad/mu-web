@@ -1,0 +1,6 @@
+node_modules/
+output/
+tests/.release-test-*/
+.release-stage/
+.release-backup/
+releases/.lock

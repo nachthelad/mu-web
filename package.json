@@ -1,0 +1,15 @@
+{
+  "name": "mu-golden-radar",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node scripts/check.cjs",
+    "dev": "node scripts/server.cjs",
+    "release": "node scripts/release.cjs",
+    "rollback": "node scripts/rollback.cjs",
+    "test:ui": "node scripts/test-ui.cjs",
+    "test:hub": "node tests/hub-ui.cjs",
+    "test:hub-position": "node tests/hub-position-ui.cjs"
+  },
+  "devDependencies": { "playwright": "1.62.1" }
+}
