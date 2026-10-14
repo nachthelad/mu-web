@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-14",
+  "entry": "/assets/index-C399rQbj.js",
+  "mutualCloseModule": "/assets/index-D5yEXyzD.js",
+  "hashes": {
+    "mobx": "7e2be5b4d7702633d0a6b746f56410b8a27f6c315201cbca06f672d1c22c2856",
+    "ui": "4a64bb3eec58423c2f5eb51de21846553d6c9267a98c558cb7fe09543a2a362f"
+  },
+  "scope": "Exact native registry jt and installer X0; auxiliary window stores are scaffolding."
+}

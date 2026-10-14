@@ -1,0 +1,21 @@
+const {chromium}=require('../scripts/browser-runtime.cjs'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
+(async()=>{const browser=await chromium.launch({headless:true});try{
+ const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install();
+ await page.goto(pathToFileURL(path.resolve('demos/helper/character-panels.html')).href);await page.clock.runFor(600);
+ const config=page.locator('#mu-config'),c=page.locator('.mu-item-window.character-info'),v=page.locator('.mu-item-window.inventory');
+ const open=async()=>{await page.locator('#mu-hub header > .settings').click();await config.getByRole('tab',{name:'Estadísticas',exact:true}).click();};
+ await page.locator('#native-c').click();await page.locator('#native-v').click();assert.equal(await c.count(),0);
+ await open();assert.equal(await config.locator('.pair-inventory').isChecked(),false);await config.locator('.pair-inventory').check();await page.clock.runFor(600);await config.locator('.cancel').click();
+ await page.locator('#native-c').click();await page.clock.runFor(600);assert.equal(await c.count(),1);assert.equal(await v.count(),1);assert.equal(await page.locator('#mu-helper-stats-actions').count(),0);
+ await page.reload();await page.clock.runFor(600);await page.locator('#native-v').click();await page.locator('#native-c').click();assert.equal(await c.count(),1);assert.equal(await v.count(),1);
+ await open();await config.locator('.pair-inventory').uncheck();await page.clock.runFor(600);await config.locator('.cancel').click();assert.equal(await c.count(),1);assert.equal(await v.count(),1);await c.locator('.head-close').click();await page.locator('#native-c').click();assert.equal(await v.count(),0);
+ await open();await config.locator('.pair-inventory').check();await page.clock.runFor(600);await config.locator('.detailed-stats').check();await config.locator('.save').click();await page.clock.runFor(600);await page.locator('#native-v').click();
+ await page.addScriptTag({path:path.resolve('demos/helper/character-current-audited.js')});
+ await page.evaluate(()=>{window.__STATS_DEMO_NATIVE__=window.__CURRENT_CHARACTER_FIXTURE__.nativeFixture();const item=(group,num)=>({group,num,lvl:13,isExcellent:true,isAncient:false,optionLevel:4,excellentFlags:32,luck:true});window.__store.playerData.items=[item(5,11),item(6,0),item(7,0),item(8,0),item(9,0),item(10,0),item(11,0),item(12,0),item(13,0),item(13,12),item(13,8),item(13,9)];});await page.clock.runFor(600);
+ const panel=page.locator('#mu-helper-stats .stats-view');assert.equal(await panel.locator('.equipment-items,.equipment-details').count(),0);assert.doesNotMatch(await panel.innerText(),/Item 5\/|Equipo equipado/);
+ await panel.locator('.capture-a').click();await page.evaluate(()=>window.__store.playerData.items[11].lvl=0);await page.clock.runFor(600);await panel.locator('.capture-b').click();assert.match(await panel.locator('.stats-warning').textContent(),/Cambió Anillo 2/);
+ await page.evaluate(()=>{const h=document.querySelector('#mu-hub');h.style.top='auto';h.style.bottom='12px';});await panel.evaluate(e=>e.scrollTop=0);await page.screenshot({path:'docs/screenshots/character-equipment-c-v-preview.png'});
+ await page.setViewportSize({width:375,height:640});await page.clock.runFor(600);for(const target of [c,v,panel])assert.equal(await target.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+.1&&r.top>=0&&r.bottom<=innerHeight+.1}),true);
+ await page.evaluate(()=>window.__STATS_DEMO_COMPATIBLE__=false);await page.clock.runFor(600);assert.match(await config.locator('.pair-runtime-state').textContent(),/no disponible/);
+ assert.deepEqual(errors,[]);console.log('PASS complete equipment, current tooltip, ring A/B, independent C/V switch, Cancelar, reload, off behavior and compact layout');
+ }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

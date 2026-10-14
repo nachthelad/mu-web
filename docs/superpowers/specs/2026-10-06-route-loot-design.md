@@ -1,0 +1,9 @@
+# Ruta editable y loot compacto
+
+Diseño aprobado en el chat: Config se minimiza a una barra restaurable sin perder el borrador. Helper ofrece Leveleo y Obtener, más secciones plegables de party/apariencia. El combate sigue siendo responsabilidad de Home.
+
+La ruta contiene entre 1 y 26 pasos con mapa del listado M provisto por el usuario, X/Y enteros 0–255 y nivel de entrada entre el mínimo del destino y 399. Se agregan, quitan y reordenan pasos; los niveles deben crecer estrictamente en el orden elegido. Elegir mapa precarga su mínimo. Los 26 destinos y mínimos se transcriben de la captura, no se presentan como catálogo dinámico del servidor. Se conservan las coordenadas y preferencias existentes mediante una migración aditiva compatible con la clave v1. Reset reevalúa desde el comienzo; por debajo del primer requisito se permanece en el mapa inicial, sin warp. Variantes del mismo mapa deben esperar una nueva confirmación MapChanged.
+
+Obtener ofrece radio 1–8, Todo, Jewels/Gems, Zen, Ancient, Excellent y nombres agregables/quitables. Las categorías se suman (OR); los nombres tienen condiciones Excellent y Luck opcionales combinadas con AND. La lista antigua migra a nombres con ambas condiciones. El nuevo picker comparte el scheduler existente y el mecanismo de pickup confirmado, se suspende en cacería/traslados/pausa/muerte. No se reescribe el estado decodificado privado de Home: se detectan filtros nativos simultáneos y se solicita apagarlos antes de ejecutar el picker configurado. No implementar skills, buffs ni pociones a partir de las fotos: sirven de referencia visual.
+
+Validar lógica, migración, MapChanged, reset, filtros, rechazo/timeout, borradores, rollback, teclado, minimización y viewport en demos. Incrementar versiones de Helper/Config, documentar y ejecutar release completo. Entregar instalables locales y capturas; no instalar ni publicar online. La demo no confirma funcionamiento real.

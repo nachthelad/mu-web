@@ -17,7 +17,7 @@ test('reset 400 una vez y espera descenso de nivel',()=>{
  const next=c.step(state({level:1,map:0,position:{x:125,y:125}}),10000);assert.equal(next.kind,'walk');assert.equal(next.spot.map,0);assert.equal(c.resets,1);
 });
 test('reset rechazado pausa y no repite comando',()=>{
- const c=new Cycle();c.start(state({level:400}),0);c.step(state({level:400}),0);assert.equal(c.step(state({level:400}),31000).kind,'stop');assert.equal(c.step(state({level:400}),32000),null);
+ const c=new Cycle();c.start(state({level:400}),0);c.step(state({level:400}),0);for(let t=5000;t<30000;t+=5000)assert.equal(c.step(state({level:400}),t),null);assert.equal(c.step(state({level:400}),30000).kind,'stop');assert.equal(c.step(state({level:400}),32000),null);
 });
 test('muerte en Icarus vuelve desde respawn al último spot',()=>{
  const c=new Cycle(),s=state({level:200,map:10,position:{x:43,y:155}});c.start(s,0);assert.equal(c.step(s,0).kind,'helper');
@@ -50,6 +50,23 @@ test('Home rechazado pausa sin repetir y falta de API es explicita',()=>{
  const n=new NativeHelper(),s={muHelper:{active:false},toggleMuHelper(){}};
  n.sync(s,true,0);assert.equal(n.sync(s,true,10001),'timeout');assert.equal(new NativeHelper().sync({},true,0),'unavailable');
 });
+test('Home permite un nuevo intento después del timeout, en ambas direcciones',()=>{
+ for(const active of [true,false]){
+  const n=new NativeHelper(),s={muHelper:{active:!active},calls:0,toggleMuHelper(){this.calls++;}};
+  assert.equal(n.sync(s,active,0),'waiting');
+  assert.equal(n.sync(s,active,10001),'timeout');assert.equal(n.pending,null);
+  assert.equal(n.sync(s,active,15000),'waiting');assert.equal(s.calls,2);
+  s.muHelper.active=active;assert.equal(n.sync(s,active,15500),'ready');
+ }
+});
+test('Home informa zona segura sin enviar inicio y permite salir o detener',()=>{
+ const n=new NativeHelper(),s={muHelper:{active:false},calls:0,toggleMuHelper(){this.calls++;}};
+ let safe=true;const world={playerEntity:{attributeSystem:{isAboveZero(key){assert.equal(key,'inSafeZone');return safe;}}}};
+ assert.equal(n.sync(s,true,0,world),'safe-zone');assert.equal(s.calls,0);assert.equal(n.pending,null);
+ safe=false;assert.equal(n.sync(s,true,500,world),'waiting');assert.equal(s.calls,1);
+ s.muHelper.active=true;assert.equal(n.sync(s,true,1000,world),'ready');
+ safe=true;assert.equal(n.sync(s,false,1500,world),'waiting');assert.equal(s.calls,2);
+});
 
 test('reset con desconexion selecciona el mismo personaje una vez y retoma tras entrar',()=>{
  const c=new Cycle();c.start(state({level:400}),0);c.step(state({level:400}),0);
@@ -63,7 +80,8 @@ test('reingreso espera lista cargada, cancela si falta personaje y expira sin sp
  for(const mode of ['missing','timeout']){const c=new Cycle();c.start(state({level:400}),0);c.step(state({level:400}),0);
  assert.equal(c.step({ready:false,connected:true,uiState:3,loadingCharacters:true,characters:[]},2000),null);
  const s=mode==='missing'?{ready:false,connected:true,uiState:3,characters:['Other']}:{ready:false,connected:false};
- assert.equal(c.step(s,mode==='missing'?3000:91000).kind,'stop');assert.equal(c.step(s,92000),null);
+ if(mode==='timeout')for(let t=7000;t<90000;t+=5000)assert.equal(c.step(s,t),null);
+ assert.equal(c.step(s,mode==='missing'?3000:92000).kind,'stop');assert.equal(c.step(s,93000),null);
  }
 });
 test('detener durante reingreso cancela seleccion y no retoma automaticamente',()=>{

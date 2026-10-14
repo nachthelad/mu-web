@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-14",
+  "entry": "/assets/index-C399rQbj.js",
+  "module": "/assets/layout-68bM4dWi.js",
+  "exports": {
+    "calculate": "FPt as b1",
+    "catalog": "Co as bU",
+    "slots": "se as aL",
+    "itemStats": "_g as np"
+  },
+  "hashes": {
+    "layout": "65e2e9773262649876414240ff30900f39187402ae8a168ea2c0b85eda43ed33",
+    "index": "7e2be5b4d7702633d0a6b746f56410b8a27f6c315201cbca06f672d1c22c2856",
+    "boot": "2a1534d9e061a612ac7290467c440e8a7f701a7d84579da43dfba3929407a248",
+    "window": "e0fb98582f263c91c33f58c8ca8717741c3d20025806077e56c8adccabc37ba5"
+  }
+}

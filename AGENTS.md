@@ -1,5 +1,13 @@
 # Trabajo en mu-web
 
+## Preparación de pedidos
+
+- Para redactar o mejorar prompts destinados a otro chat, usar el skill `project-prompter` (`C:/Users/nacht/.codex/skills/project-prompter/SKILL.md`). El chat Prompter prepara el encargo; no ejecuta lo que describe salvo un pedido separado del usuario.
+- Consultar las instrucciones y documentación vigentes del proyecto, separar hechos verificados de pendientes y adaptar alcance, validación y entrega al pedido. No asumir versiones ni capacidades a partir del historial.
+- Esta convención no agrega un paso de prompting a los pedidos directos de implementación ni autoriza enviar mensajes a otros chats sin indicación del usuario.
+
+## Desarrollo
+
 - Limitar cambios y limpieza a esta carpeta. No borrar archivos fuera del proyecto.
 - Leer `README.md`, `docs/organization-and-updates.md` y `docs/addon-design.md` antes de modificar módulos.
 - Fuentes canónicas: `src/radar/golden-radar.user.js`, `src/helper/level-helper.user.js`, `src/hub/hub.user.js`. No recrear scripts en la raíz ni editar `dist` o copias de `releases`.

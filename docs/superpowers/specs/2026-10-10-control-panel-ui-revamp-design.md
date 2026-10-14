@@ -2,7 +2,7 @@
 
 ## Estado y objetivo
 
-El usuario eligió la opción A del mockup de Leveleo: editor amplio con resumen lateral. Conserva la estética oscura, oliva y dorada. Esta especificación extiende esa distribución a las seis secciones y queda pendiente de revisión del usuario antes de implementar.
+El usuario eligió la opción A del mockup de Leveleo: editor amplio con resumen lateral. Conserva la estética oscura, oliva y dorada. Esta especificación extiende esa distribución a las seis secciones y fue aprobada para implementación el 2026-10-10.
 
 Reducir desplazamiento vertical y aprovechar el ancho sin reducir legibilidad, tamaño útil de controles ni funcionalidad. La barra superior real permanece intacta, incluidos navegación, conexión, selector, controles y comportamiento sticky. La barra simplificada del mockup es ilustrativa y no prescribe cambios a la barra real.
 

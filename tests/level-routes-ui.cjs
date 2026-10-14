@@ -1,0 +1,19 @@
+const {chromium}=require('../scripts/browser-runtime.cjs'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
+(async()=>{const browser=await chromium.launch({headless:true});try{
+ const page=await browser.newPage({viewport:{width:480,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install();
+ await require('./support/legacy-level-editor.cjs')(page);await page.goto(pathToFileURL(path.resolve('demos/helper/preview.html')).href);await page.addScriptTag({path:path.resolve('src/config/config.user.js')});
+ const cfg=page.locator('#mu-config'),helper=page.locator('#mu-level-helper'),key='mu.level-helper.demo-settings.v1';
+ const open=()=>page.evaluate(()=>window.dispatchEvent(new CustomEvent('mu-config:open')));
+ const raw=()=>page.evaluate(k=>localStorage.getItem(k),key);
+ await open();assert.equal(await cfg.locator('.route-select option').count(),1);await cfg.locator('.route-clone').click();await cfg.locator('.route-name').fill('Alternativa Noria');await cfg.locator('.step').first().locator('select').selectOption('noria');await cfg.locator('.vary-spots').check();await cfg.locator('.save').click();
+ const saved=JSON.parse(await raw());assert.equal(saved.routes.length,2);assert.equal(saved.routes[0].path[0].map,'lorencia');assert.equal(saved.routes[1].path[0].map,'noria');assert.equal(saved.selectedRoute,1);assert.equal(saved.varySpots,true);assert.equal(await helper.locator('.toggle').getAttribute('aria-pressed'),'false');
+ await open();await cfg.locator('.route-select').selectOption('0');await cfg.locator('.cancel').click();assert.equal(JSON.parse(await raw()).selectedRoute,1);
+ await page.reload();await page.addScriptTag({path:path.resolve('src/config/config.user.js')});await open();assert.equal(await cfg.locator('.route-select').inputValue(),'1');await cfg.locator('.route-select').selectOption('0');await cfg.locator('.vary-spots').uncheck();await cfg.locator('.save').click();
+ await page.evaluate(()=>{window.__store.playerData.level=20;window.__store.gsSocket.url='wss://demo.invalid/game?host=world-a&port=1';window.__world.netObjsQuery.entities=Array.from({length:5},(_,i)=>({netId:100+i,npcType:2,worldIndex:0,transform:{pos:{x:47+i,z:59}}}));});
+ await helper.locator('.toggle').click();await page.clock.runFor(16000);await helper.locator('.toggle').click();await open();await cfg.locator('.observed-spots summary').click();assert.ok(await cfg.locator('.spots-list p').count());assert.equal(await cfg.locator('.route-generate').isDisabled(),false);
+ const before=await raw();await cfg.locator('.route-generate').click();assert.equal(await cfg.locator('.route-select option').count(),3);assert.equal(await cfg.locator('.vary-spots').isChecked(),true);assert.equal(await raw(),before);assert.equal(await helper.locator('.toggle').getAttribute('aria-pressed'),'false');
+ await cfg.locator('.window').screenshot({path:'docs/screenshots/level-routes-preview.png'});await cfg.locator('.cancel').click();assert.equal(await raw(),before);
+ await open();assert.equal(await cfg.locator('.route-select option').count(),2);await cfg.locator('.route-generate').click();await cfg.locator('.save').click();assert.equal(JSON.parse(await raw()).routes.length,3);
+ await page.evaluate(()=>window.__store.gsSocket.url='wss://demo.invalid/game?host=world-b&port=1');await page.clock.runFor(1000);await open();assert.equal(await cfg.locator('.spots-list p').count(),0);assert.equal(await cfg.locator('.route-generate').isDisabled(),true);await cfg.locator('.cancel').click();
+ assert.deepEqual(errors,[]);console.log('PASS routes: legacy, clone, selection, cancel, save/reload, passive spots, draft generation, separate server archive, paused and compact UI');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

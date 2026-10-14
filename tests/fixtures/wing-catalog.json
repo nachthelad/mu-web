@@ -1,0 +1,98 @@
+[
+  {
+    "group": 12,
+    "num": 0,
+    "name": "Wings of Fairy",
+    "model": "Item/Wing01.glb"
+  },
+  {
+    "group": 12,
+    "num": 1,
+    "name": "Wings of Angel",
+    "model": "Item/Wing02.glb"
+  },
+  {
+    "group": 12,
+    "num": 2,
+    "name": "Wings of Satan",
+    "model": "Item/Wing03.glb"
+  },
+  {
+    "group": 12,
+    "num": 3,
+    "name": "Wings of Spirit",
+    "model": "Item/Wing04.glb"
+  },
+  {
+    "group": 12,
+    "num": 4,
+    "name": "Wings of Soul",
+    "model": "Item/Wing05.glb"
+  },
+  {
+    "group": 12,
+    "num": 5,
+    "name": "Wings of Dragon",
+    "model": "Item/Wing06.glb"
+  },
+  {
+    "group": 12,
+    "num": 6,
+    "name": "Wings of Darkness",
+    "model": "Item/Wing07.glb"
+  },
+  {
+    "group": 12,
+    "num": 36,
+    "name": "Wing of Storm",
+    "model": "Item/wing08.glb"
+  },
+  {
+    "group": 12,
+    "num": 37,
+    "name": "Wing of Space Time",
+    "model": "Item/wing09.glb"
+  },
+  {
+    "group": 12,
+    "num": 38,
+    "name": "Wing of Illusion",
+    "model": "Item/wing10.glb"
+  },
+  {
+    "group": 12,
+    "num": 39,
+    "name": "Wings of Hurricane",
+    "model": "Item/wing11.glb"
+  },
+  {
+    "group": 12,
+    "num": 40,
+    "name": "Mantle of Monarch",
+    "model": "Item/DarkLordRobe02.glb"
+  },
+  {
+    "group": 12,
+    "num": 41,
+    "name": "Wing of Mistery",
+    "model": "Item/Wing42.glb"
+  },
+  {
+    "group": 12,
+    "num": 42,
+    "name": "Wing of Despair",
+    "model": "Item/Wing43.glb"
+  },
+  {
+    "group": 12,
+    "num": 43,
+    "name": "Wings of Violent Wind",
+    "model": "Item/Wing44.glb"
+  },
+  {
+    "group": 13,
+    "num": 30,
+    "name": "Cape of Lord",
+    "model": "Item/DarkLordRobe.glb"
+  }
+]

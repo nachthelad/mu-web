@@ -6,6 +6,7 @@
     "check": "node scripts/check.cjs",
     "dev": "node scripts/server.cjs",
     "release": "node scripts/release.cjs",
+    "share:extension": "node scripts/share-extension.cjs",
     "rollback": "node scripts/rollback.cjs",
     "test:ui": "node scripts/test-ui.cjs",
     "test:hub": "node tests/hub-ui.cjs",

@@ -1,2 +1,13 @@
 const path=require('node:path'),{execFileSync}=require('node:child_process');
-for(const file of ['radar-ui.cjs','helper-ui.cjs','hub-ui.cjs','hub-position-ui.cjs','hub-panels-ui.cjs'])execFileSync(process.execPath,[path.resolve(__dirname,'../tests',file)],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-position-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/stats-autosave-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-build-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/balrog-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-equipment-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/reset-reentry-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/extension-layout-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/toggle-autosave-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/golden-counter-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-stats-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/extension-panel-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+for(const file of ['party-delay-ui.cjs','map-leveling-ui.cjs','level-routes-ui.cjs','route-capture-ui.cjs','radar-ui.cjs','helper-ui.cjs','hub-ui.cjs','hub-position-ui.cjs','hub-panels-ui.cjs','golden-retired-ui.cjs','config-ui.cjs','excellent-loot-ui.cjs','route-loot-ui.cjs','analytics-ui.cjs','helper-arrival-ui.cjs','interface-ui.cjs','visualization-ui.cjs','account-settings-ui.cjs','extension-ui.cjs'])execFileSync(process.execPath,[path.resolve(__dirname,'../tests',file)],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});

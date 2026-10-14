@@ -1,0 +1,6 @@
+'use strict';window.__ANALYTICS_DEMO__=true;window.__LEVEL_HELPER_DEMO__=true;
+const analyticsHandlers=new Map();window.__eventBus={on(n,f){if(!analyticsHandlers.has(n))analyticsHandlers.set(n,new Set());analyticsHandlers.get(n).add(f);},off(n,f){analyticsHandlers.get(n)?.delete(f);}};
+window.analyticsGain=added=>{window.__store.playerData.exp+=added;for(const f of analyticsHandlers.get('experienceGained')??[])f({added,killedNetId:2});};
+window.__store={uiState:5,gsSocket:{readyState:1,url:'wss://demo.invalid:444/game?nonce=private'},playerData:{name:'DemoHero',charClass:4,level:20,exp:10000,currentHP:100}};
+window.__world={mapIndex:0,netObjsQuery:{entities:[{netId:2,npcType:7,objectNameInWorld:'Death Knight',worldIndex:0}]},playerEntity:{transform:{pos:{x:47,z:59}}}};window.__social={partyMembers:[]};
+document.getElementById('gain').onclick=()=>window.analyticsGain(12000);document.getElementById('level').onclick=()=>window.__store.playerData.level++;document.getElementById('move').onclick=()=>window.__world.playerEntity.transform.pos.x+=20;document.getElementById('death').onclick=()=>window.__store.playerData.currentHP=window.__store.playerData.currentHP?0:100;document.getElementById('party').onclick=()=>window.__social.partyMembers=window.__social.partyMembers.length?[]:[{name:'Vecino'}];

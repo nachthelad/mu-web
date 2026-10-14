@@ -1,4 +1,9 @@
 * text=auto eol=lf
 # Preserve exact userscript bytes: release manifests hash the installed files.
 *.user.js -text
+# Release hashes and audited fixtures depend on the exact original bytes.
+src/extension/** -text
+dist/chrome-extension/** -text
+releases/extensions/** -text
+artifacts/stats-research/** -text
 *.png binary

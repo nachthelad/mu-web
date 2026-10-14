@@ -1,5 +1,9 @@
 // Prefer the project's dependency; the Codex desktop bundle is a local fallback.
 const path = require('node:path');
+const fs = require('node:fs');
+// The desktop sandbox may redirect LOCALAPPDATA; reuse installed test browsers.
+const installedBrowsers=path.join(process.env.USERPROFILE||'', 'AppData/Local/ms-playwright');
+if(!process.env.PLAYWRIGHT_BROWSERS_PATH&&fs.existsSync(installedBrowsers))process.env.PLAYWRIGHT_BROWSERS_PATH=installedBrowsers;
 try { module.exports = require('playwright'); }
 catch (error) {
   if (error.code !== 'MODULE_NOT_FOUND') throw error;

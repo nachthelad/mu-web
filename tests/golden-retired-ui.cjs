@@ -1,0 +1,32 @@
+const {chromium}=require('../scripts/browser-runtime.cjs');
+const assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
+(async()=>{const browser=await chromium.launch({headless:true});try{
+ const page=await browser.newPage({viewport:{width:1100,height:850}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.clock.install({time:new Date('2026-10-11T12:00:00Z')});
+ await page.goto(pathToFileURL(path.resolve('demos/hub/preview.html')).href);await page.clock.runFor(1000);
+ await page.evaluate(()=>{window.addEventListener('mu-hub:register',e=>{if(e.detail.id==='helper')window.retiredHelper=e.detail;});window.dispatchEvent(new CustomEvent('mu-hub:discover'));});
+ assert.deepEqual(await page.evaluate(()=>retiredHelper.actions.gold()),{available:false,message:'Golden hunt retirado'});
+ assert.equal(await page.locator('#mu-hub .gold').count(),0);assert.equal(await page.locator('#mu-level-helper .gold').count(),0);
+ await page.locator('#mu-hub header > .settings').click();const config=page.locator('#mu-config');
+ assert.equal(await config.locator('[data-tab=goldens]').count(),0);
+ await config.locator('#level-tab').focus();await page.keyboard.press('ArrowRight');assert.equal(await config.locator('#obtain-tab').getAttribute('aria-selected'),'true');
+ // Saving another section round-trips the historical gold configuration unchanged.
+ await config.locator('.save').click();
+ const key=await page.evaluate(()=>Object.keys(localStorage).find(k=>k.startsWith('mu.level-helper.')&&JSON.parse(localStorage.getItem(k))?.path));
+ const before=require('../src/helper/level-helper.user.js').goldPreferences({},0);
+ await page.evaluate(({key,before})=>{const p=JSON.parse(localStorage.getItem(key));p.gold=before;localStorage.setItem(key,JSON.stringify(p));},{key,before});
+ await page.evaluate(k=>{const p=JSON.parse(localStorage.getItem(k));p.gold.enabled=true;localStorage.setItem(k,JSON.stringify(p));},key);
+ await page.reload();await page.clock.runFor(1000);
+ await page.evaluate(()=>{window.addEventListener('mu-hub:register',e=>{if(e.detail.id==='helper')window.retiredHelper=e.detail;});window.dispatchEvent(new CustomEvent('mu-hub:discover'));retiredHelper.actions.gold();window.__store.playerData.level=200;});
+ await page.locator('#mu-hub header > .toggle').click();await page.clock.runFor(4000);
+ const map=await page.evaluate(()=>window.__world.mapIndex);
+ await page.evaluate(()=>{window.__goldDemo.soon();window.__goldDemo.start();window.__goldDemo.monster();retiredHelper.actions.gold();});await page.clock.runFor(12000);
+ assert.equal(await page.evaluate(()=>retiredHelper.getState().gold.enabled),false);assert.equal(await page.evaluate(()=>retiredHelper.getState().gold.ready),false);
+ assert.equal(await page.evaluate(()=>window.__world.mapIndex),map);assert.equal(await page.evaluate(()=>!!window.__world.attackTarget),false);
+ assert.equal(await page.evaluate(()=>document.getElementById('commands').textContent.includes('/move tarkan2')),false);
+ assert.equal(await page.locator('#mu-hub header > .toggle').getAttribute('aria-pressed'),'true');
+ await page.locator('#mu-hub header > .settings').click();await config.getByRole('tab',{name:'Leveleo',exact:true}).click();await config.locator('.save').click();
+ assert.deepEqual(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)).gold,key),{...before,enabled:true});
+ await page.locator('#mu-hub header > .settings').click();await page.screenshot({path:'docs/screenshots/golden-retired-preview.png'});
+ assert.deepEqual(errors,[]);console.log('PASS Golden hunt retired: no controls, inert legacy action/preferences/events, leveling continues, settings and keyboard preserved.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -4,3 +4,29 @@ tests/.release-test-*/
 .release-stage/
 .release-backup/
 releases/.lock
+
+# Local logs, browser profiles, credentials, and temporary design sessions.
+*.log
+.env
+.env.*
+!.env.example
+.superpowers/
+tests/.panel-browser-*/
+
+# Keep only audited client inputs required by fixture generators and tests.
+artifacts/*
+!artifacts/stats-research/
+artifacts/stats-research/*
+!artifacts/stats-research/layout.js
+!artifacts/stats-research/index.js
+!artifacts/stats-research/current-layout.js
+!artifacts/stats-research/current-entry.js
+!artifacts/stats-research/current-ui.js
+!artifacts/stats-research/current-audit.json
+!artifacts/stats-research/rework-layout.js
+!artifacts/stats-research/rework-index.js
+!artifacts/stats-research/rework-boot.js
+!artifacts/stats-research/rework-window.js
+!artifacts/stats-research/rework-audit.json
+!artifacts/stats-research/cv-index-D5yEXyzD.js
+!artifacts/stats-research/cv-audit.json
