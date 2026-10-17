@@ -1,3 +1,15 @@
+## Helper 1.29.5 · Configuración visible y casco persistente
+
+- Todas las secciones del panel externo mantienen la configuración visible tras Guardar, Cancelar o Escape.
+- Ocultar casco: switch con guardado inmediato por cuenta, restauración al recargar y conservación tras Cancelar/rollback. Campo opcional hideHelmet en preferencias v1, false por defecto.
+- Sin pruebas Playwright ni release local por pedido del usuario; validación manual pendiente.
+
+## 2026-10-14 · Helper 1.29.4 · Inicio en spots de mundos compartidos
+
+- Iniciar/reanudar leveleo en el mundo y spot elegido (distancia de llegada de hasta 2 casillas) evita el warp inicial por variantes con ID compartido, como Devias 2. Conserva el spot entre pausas.
+- Más lejos mantiene el transporte explícito. Cambios de etapa a otra variante, viajes pendientes, confirmaciones, mínimos, reset y zona segura conservan su comportamiento.
+- Regresiones de lógica para Devias 1–4 y Atlans 3, tolerancia, selección estable, etapas, confirmación tardía, rechazo y reset; demo con F10 y scheduler/Home reales del addon. Validación local sin cuenta; partida real pendiente.
+
 ## 2026-10-14 · Helper 1.29.3 · C/V movibles
 
 - Retira escrituras de position/left/top/right/bottom/transform sobre ventanas nativas. El refresh no hace snapping ni modifica escala, posición o almacenamiento nativo, con stats ON/OFF.

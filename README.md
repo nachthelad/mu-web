@@ -1,3 +1,11 @@
+## Helper 1.29.5 · Configuración visible y casco persistente
+
+Todas las secciones del panel externo mantienen los ajustes visibles al Guardar o Cancelar. Ocultar casco ahora es un switch que se guarda automáticamente por cuenta y se restaura al recargar. Alas sigue requiriendo Guardar.
+
+## Helper 1.29.4 · Inicio sin transporte redundante
+
+F10 inicia o reanuda sin otro transporte si ya estás en el mundo y spot elegido, dentro de dos casillas, aunque existan variantes como Devias 2. Conserva el spot entre pausas. Más lejos y al cambiar de etapa mantiene los viajes y confirmaciones necesarios. [Política de navegación](docs/level-routes.md). Validación local; partida real pendiente.
+
 ## Helper 1.29.3 · Posiciones nativas de C/V
 
 C e inventario conservan su arrastre, escala y posiciones guardadas por el juego. El refresh ya no las ancla a las esquinas. Solo el detalle A/B se acomoda alrededor de C para caber en pantalla. Validación local en ambos skins; no se instala ni cambia la partida automáticamente.

@@ -28,11 +28,11 @@ function paint(s){
 }
 async function read(){
   const result=await request({op:'read',view,revision});renderer.apply(result.view);revision=result.view.revision;
-  if(view==='config'&&renderer.tabs().some(t=>t.selected&&t.id==='stats')&&!renderer.configurationOpen()){
+  if(view==='config'&&!renderer.configurationOpen()){
     await request({op:'open',view});const reopened=await request({op:'read',view,revision});renderer.apply(reopened.view);revision=reopened.view.revision;
   }
   $('#mirror').hidden=false;$('#empty').hidden=true;
-  $('#open-view').hidden=view==='config'&&(renderer.configurationOpen()||$('#config-section').value==='stats');
+  $('#open-view').hidden=view==='config';
   syncSections();
 }
 function syncSections(){
