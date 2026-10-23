@@ -40,15 +40,17 @@ const assert=require('node:assert/strict'),path=require('node:path'),{pathToFile
   assert.equal(await helper.locator('.config').isVisible(),false);
   await helper.locator('.settings').click();assert.equal(await helper.locator('.config').isVisible(),true);
   await helper.getByRole('tab',{name:'Visualización',exact:true}).click();
-  const helmet=helper.getByRole('checkbox',{name:'Ocultar casco',exact:true});assert.equal(await helmet.isChecked(),false);
+  const helmet=helper.getByRole('switch',{name:'Ocultar casco',exact:true});assert.equal(await helmet.isChecked(),false);
   await page.evaluate(()=>{
     const part=()=>({Ready:true,loadSeq:0,Unload(){this.Ready=false;this.loadSeq++;}});
     const model={Ready:true,Helm:part(),HelmMask:part(),loadPartAsync(){return Promise.resolve();},setDefaultHelm(){return Promise.resolve();},setDefaultMask(){this.HelmMask.Unload();}};
     window.__world.playerEntity.modelObject=model;window.__world.playerEntity.charAppearance={helm:{group:7,num:1,lvl:9},changed:false};window.originalHelmetLoader=model.loadPartAsync;
   });
   await helmet.check();assert.equal(await helper.locator('.toggle').getAttribute('aria-pressed'),'false');
+  await helper.locator('.helmet-save-state').filter({hasText:'Switch guardado'}).waitFor();
+  await page.clock.runFor(500);
   assert.equal(await page.evaluate(()=>window.__world.playerEntity.modelObject.HelmMask.Ready),false);
-  await helmet.uncheck();assert.equal(await page.evaluate(()=>window.__world.playerEntity.modelObject.loadPartAsync===window.originalHelmetLoader),true);
+  await helmet.uncheck();await helper.locator('.helmet-save-state').filter({hasText:'Switch guardado'}).waitFor();await page.clock.runFor(500);assert.equal(await page.evaluate(()=>window.__world.playerEntity.modelObject.loadPartAsync===window.originalHelmetLoader),true);
   assert.equal(await page.evaluate(()=>window.__world.playerEntity.charAppearance.helm.num),1);
   await helper.locator('.toggle').click();await page.waitForFunction(()=>document.getElementById('mu-level-helper').shadowRoot.querySelector('.toggle').getAttribute('aria-pressed')==='true');
   await helper.locator('.toggle').click();assert.equal(await helper.locator('.toggle').getAttribute('aria-pressed'),'false');

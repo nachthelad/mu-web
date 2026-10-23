@@ -1,6 +1,6 @@
 {
-  "id": "2026-10-14T20-08-04-567Z-bcf335",
-  "createdAt": "2026-10-14T20:08:04.567Z",
+  "id": "2026-10-22T21-59-39-503Z-0ec3c2",
+  "createdAt": "2026-10-22T21:59:39.503Z",
   "contract": 1,
   "validation": [
     "syntax",
@@ -14,14 +14,14 @@
   ],
   "modules": {
     "radar": {
-      "version": "1.9.2",
+      "version": "1.9.4",
       "file": "golden-radar.user.js",
-      "sha256": "94b48bfc0fcca05a2cfb1342d52b1329e19023b29766ffa70b8fd09ecf584313"
+      "sha256": "34ee690a791d343a5fe078eab72533995e96a6c89cb5e1c2ed89740560c34389"
     },
     "helper": {
-      "version": "1.29.3",
+      "version": "1.31.4",
       "file": "level-helper.user.js",
-      "sha256": "8914e7c4a28a54050c9043c2755b28f87d5f8cdd4241dbd3dc3b6fb0d17d63ab"
+      "sha256": "da254d9dcd2a7e3258c0687a92cc52bc6d1b6e0210718ee7fcba2c8938014455"
     },
     "hub": {
       "version": "1.4.7",
@@ -45,21 +45,21 @@
     }
   },
   "extension": {
-    "version": "1.0.36",
-    "sha256": "a36b0ac1ffdd2392a2ceb96121e71791875ed92f9300a3ca4bb546291999d1ad",
+    "version": "1.0.46",
+    "sha256": "b3b625bb33704bc92521765e4a4f4d24f42e0fc76ca397687fc2242d6d781f99",
     "files": {
       "analytics.user.js": "ad8c987757dd65570593d7b578af23864ffb941f271f8e658525b69d88dd6fd8",
       "config.user.js": "e1628f48f897d02e9e43fe22411dd9c2a566828c70bbc9e4e753db358bbaf3f8",
       "content-bridge.js": "8119d13af220e395cf661695fba7365a80d0bbfc736b758b88400e007e9d1991",
-      "golden-radar.user.js": "94b48bfc0fcca05a2cfb1342d52b1329e19023b29766ffa70b8fd09ecf584313",
+      "golden-radar.user.js": "34ee690a791d343a5fe078eab72533995e96a6c89cb5e1c2ed89740560c34389",
       "hub.user.js": "e774f7edcbfecd5253abb07f3b29969301cab1e0f0c8deb2ed160f2ecb23fa06",
       "interface.user.js": "983fb4ea09623e95a0afe02e6799e766661e8ec7d151599e2b741525cc085dea",
-      "level-helper.user.js": "8914e7c4a28a54050c9043c2755b28f87d5f8cdd4241dbd3dc3b6fb0d17d63ab",
-      "manifest.json": "fcc270a7d1ff2d9919adb1f0eb04573a3b49028bad11af75231379b3c5e1e783",
-      "page-bridge.js": "dcc711dab52eb7a0c63ba286225ca124c319bdd5b2221a80b1b7e5b37629b1df",
+      "level-helper.user.js": "da254d9dcd2a7e3258c0687a92cc52bc6d1b6e0210718ee7fcba2c8938014455",
+      "manifest.json": "60a58f1d1c8c17fdf408f9acb5648e2adfc291306889956a0f16ae993bec8721",
+      "page-bridge.js": "5ac16dce3739ba499a6e759b200f4e14dfa20533da8acb94f5724ccee6a46218",
       "panel.css": "8d37e64f7d75c9b8a3868a4490c6d5130a13a2108a019bbb23b8e1b8e8bd7df5",
       "panel.html": "0b92bc17453849f0245c8a95a98483515996a3addbd0020a6a18eecf98404887",
-      "panel.js": "81fe21823d037fbd478f09cefc52a4a82131d2cb15ade8fb10a55b4a6d4c2895",
+      "panel.js": "043e6d9bc4dedaee66d6d4dfed0ddc1ec5b70edfb4b2f02382723450920a216b",
       "renderer.js": "e11b5dfabfe00f574f9442c1ff4fec8782d2372dfdf79a196e70bed60497be01",
       "worker.js": "cdf7755735219a6ef71c8b36b5c64302b108e019e433a0f8ce0ada67ba299328"
     }

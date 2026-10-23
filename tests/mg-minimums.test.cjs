@@ -1,9 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const {minimumLevel,LEVEL_MAPS,validPath,levelPath,route,goldPreferences,validGoldPreferences,Cycle}=require('../src/helper/level-helper.user.js');
-test('MG warp window exact minima, Duel Master and other class separation',()=>{
- const expected=[33,6,6,13,13,13,13,19,26,33,66,132,198,33,33,33,39,39,46,46,46,52,59,92,92,112];
+test('MG and DL warp window exact minima, evolutions and other class separation',()=>{
+ const expected=[33,6,6,13,13,13,13,19,26,33,66,132,198,33,33,33,39,39,46,46,46,52,59,92,92,112,92,112,99,99,125,138];
  assert.deepEqual(LEVEL_MAPS.map(m=>minimumLevel(m.id,12)),expected);assert.deepEqual(LEVEL_MAPS.map(m=>minimumLevel(m.id,13)),expected);
- for(const cls of [0,4,8,16,undefined])assert.deepEqual(LEVEL_MAPS.map(m=>minimumLevel(m.id,cls)),LEVEL_MAPS.map(m=>m.minLevel));
+ for(const cls of [16,17])assert.deepEqual(LEVEL_MAPS.map(m=>minimumLevel(m.id,cls)),expected);
+ for(const cls of [0,4,8,undefined])assert.deepEqual(LEVEL_MAPS.map(m=>minimumLevel(m.id,cls)),LEVEL_MAPS.map(m=>m.minLevel));
 });
 test('user MG route accepted, strict minimums and increasing order, safe other-class start',()=>{
  const path=[['lorencia',10],['arena',52],['arena2',100],['arena3',133],['arena4',200]].map(([map,level])=>({map,level,x:67,y:74}));

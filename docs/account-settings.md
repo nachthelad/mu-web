@@ -1,3 +1,7 @@
+## Helper 1.30.0 · Programación por cuenta
+
+Campo opcional schedule v1 en preferencias y registro operativo separado por mundo/cuenta. El refresh existente evalúa hora IANA Argentina; Play/F10 y paneles comparten inicio/pausa. Restaurar preferencias solo puede iniciar si la programación fue habilitada explícitamente y no hay inhibición vigente; las restantes preferencias siguen sin iniciar Play. Guardar programación actualiza la base de la transacción para conservarse tras Cancelar/rollback. [Diseño, claves, política y límites](daily-schedule.md).
+
 # Configuración de Helper por cuenta
 
 ## Diseño y alcance (2026-10-07)

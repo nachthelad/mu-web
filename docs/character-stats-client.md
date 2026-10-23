@@ -1,4 +1,41 @@
-# Estadísticas y configuración inmediata · Helper 1.29.3 (2026-10-14)
+## Cliente del 22/10/2026 · Aida y Dark Lord
+
+Helper 1.31.3 incorpora el par index-D-gOSya0 / layout-DCITLqBq. Propiedades Gg=nF, tooltip MNt=nH, nombre mk=fd y cálculo Uxt=b1; no reutiliza nC/nE del build anterior. Fixtures con fórmulas, catálogo, propiedades, tooltip y cierres nativos jt/F0 verifican estadísticas y C/V. [Evidencia y límites](client-oct22.md).
+
+# Segundo build del 21/10 · Helper 1.31.2
+
+Tras entregar 1.0.43, la raíz pública pasó a index-Do3IjarP.js / layout-CoOAKkh-.js. El texto exacto «Cliente no compatible. Hace falta actualizar el addon.» corresponde al rechazo por entrada desconocida del puente, anterior a resolver identidad. No demuestra un fallo de la cuenta ni requiere iniciar Play. Se añadieron ese par auditado al puente y al lector, conservando los anteriores y todas las validaciones.
+
+El layout nuevo conserva f=n (store), q=V (social), x=aw (eventBus), world dentro del store; boot-D9EQMRR7 importa n como E y b1 como sR para Character Info. Estadísticas mantiene QCt=b1, No=bU, se=aL, zg=nC, I5t=nE, ek=fd. Cierres jt/G0 ahora en index-BzlLuH3h. La extracción exacta confirma que fórmula, propiedades/tooltip/nombres, MobX y cierres no cambiaron; el catálogo sí cambia requisitos (por ejemplo Dragon Knight Helm ReqLvl 380→0). Se usa el catálogo nuevo, sin reciclar su copia anterior.
+
+Evidencia en artifacts/client-recheck y audit.json; extracción reproducible con node scripts/character-oct21-fixture.cjs --recheck. client-recheck.test.cjs verifica hashes, exports, llamada de Character Info y diferencias del catálogo. Las suites extension-client-ui y character-oct21-ui aceptan --recheck y se ejecutan obligatoriamente para ambos builds. Pruebas aisladas sin cuenta real; instalación en el navegador habitual y comportamiento real pendientes.
+
+Entrega completada: extensión 1.0.44 / Helper 1.31.2, conjunto 2026-10-21T22-14-56-309Z-24c91c. Sintaxis, 230 pruebas de lógica y todas las suites UI obligatorias aprobadas. El release completo se ejecutó con acceso permitido a localhost; no se omitieron validaciones. Ver release.log y verification.json en artifacts/client-recheck. Verificación oficial del manifiesto, igualdad de fuentes/dist/paquete y ZIP reproducible con checksum aprobadas. La raíz final sigue usando index-Do3IjarP y layout-CoOAKkh- conserva SHA-256 69c278b3537de11c9870f85271822944cccf56c1d6de06e1501e1443461aea48. El usuario debe reemplazar los archivos del paquete instalado y recargar extensión y juego; no se instala automáticamente.
+
+# Estadísticas y C/V · Helper 1.31.1 (2026-10-21)
+
+La raíz pública revalidada carga index-URnTVW_1.js. El adaptador faltante impedía cálculo y coexistencia C/V. layout-DQbdTT-G.js exporta QCt=b1 (Character Info), No=bU (catálogo), se=aL (slots), zg=nC (propiedades), I5t=nE (tooltip) y ek=fd (nombre). boot-BDhMntYx importa b1 como sR y lo llama con los atributos/equipo de playerData. No se aceptan aliases parecidos de builds anteriores: np/n8/mx ya representan otras interfaces. Se preservan los tres adaptadores anteriores.
+
+La noticia pública /api/news del 21/10 a las 19:47:27 UTC (16:47 Argentina) anuncia corrección del staff principal y advertencia de mano secundaria. El código lo confirma: K4e consulta se.LeftHandSlot=0, añade aC(staff) al rango base y expone P4e(staff) en staffRate separado. GJe muestra el porcentaje del tooltip zg y FJe añade item.offHandStaff a staffs de ancho 1 compatibles con Knight/MG/RageFighter; Staff of Kundun (5/11) queda excluido de ese aviso. Esa condición del aviso no es la regla completa del inventario: dt en index-deEbYU8n permite slots [0,1] para items cuyo ItemSlot es 0 y Ls verifica clase/requisitos mediante las propiedades del catálogo. El fixture admite poblar ambas manos para comparar el cálculo, pero no confirma aceptación del servidor de toda combinación. No se multiplica el rango por staffRate, no se suma Additional ni Excellent al agregado.
+
+| Fixture Soul Master, nivel 10, atributos 65535 | Mágico nativo | Staff leído por C |
+| --- | --- | --- |
+| Sin staff | 7281–16383 | 0 |
+| Kundun Excellent +13 principal (slot 0) | 7384–16493 | 110 |
+| Mismo staff solo en slot 1, datos de prueba | 7281–16383 | 0 |
+| Ambos slots poblados, datos de prueba | 7384–16493 | 110, solo principal |
+
+La captura del usuario muestra físico 8294–16493 y mágico 7384–16493 (+110), reproducidos con el catálogo de fallback extraído; no son expectativas universales. Los buffs, catálogo recibido en una sesión real y daño efectivo contra enemigos siguen fuera de esta prueba. El tooltip informa Additional Wizardry 16 y Excellent rate 10 para las opciones del fixture; no son otra suma al rango. Slots undefined o fuera del catálogo conservan null en las métricas que dependen de ellos, sin invalidar métricas independientes. Dos staffs no generan un porcentaje único de tooltip.
+
+La exclusividad sigue en el auxiliar index-deEbYU8n.js: jt/G0 instala reacciones MobX que cierran el resto de ventanas. El hook existente sigue siendo compatible y solo veta el cierre del hermano C/V en la apertura. OFF conserva las ventanas abiertas y restaura exclusividad para próximas aperturas; controles, arrastre, escalas y persistencia son nativos. No se importan boot ni esos auxiliares en producción.
+
+«Pausado: cambió la cuenta» no era un error de la calculadora: syncAccount también lo emitía para null→primera cuenta cuando el puente terminaba de cargar. Ahora esa transición dice «Pausado: cuenta conectada; inicio manual». Un cambio posterior mantiene su mensaje, limpieza e inhibición; el diagnóstico no habilita Play ni debilita accountIdentity. La comparación valida la cuenta nuevamente antes de leer datos. El puente n/V/aw y el getter world quedan sin cambios.
+
+Evidencia: artifacts/stats-2026-10-21/{root.html,index.js,layout.js,boot.js,index-deEbYU8n.js,news.json,audit.json}. scripts/character-oct21-fixture.cjs extrae fórmula, enums, catálogo, propiedades, nombres, tooltip, MobX y registro de cierres sin modificar sus cuerpos. Traducciones, nombres de skills, configuración Ancient y stores auxiliares de ventanas son scaffolding explícito; no se ejecuta el boot nativo. Tests character-oct21.test.cjs verifican hashes, referencias y combinaciones. character-oct21-ui.cjs usa puente y Helper originales juntos con import compartido tardío, errores de exports, build desconocido, cierres reales, C→V/V→C, Escape/inputs simulados, ON/OFF, equipo/A/B, recreación, cambios de cuenta/mundo y Play pausado. El teclado del fixture es scaffolding; las suites existentes cubren posiciones en ambos skins, recarga, Cancelar/rollback y panel externo. Captura local: docs/screenshots/character-oct21-cv.png. Esto separa auditoría estática, reproducción aislada y partida real pendiente.
+
+Release local completado: Helper 1.31.1, extensión 1.0.43, conjunto 2026-10-21T22-03-29-389Z-ac6fe5. Sintaxis, 228 pruebas de lógica y todas las suites UI obligatorias aprobadas. La primera ejecución se detuvo en server.test con fetch failed por localhost restringido; la ejecución completa con acceso permitido pasó, sin omitir pruebas. Logs release.log y release-permitted.log en artifacts/stats-2026-10-21. Fuente/dist/paquete idénticos; ZIP reproducido y SHA-256 27e002f351a64bb213ac86ca5b05f3ea686af584484349b24fc14319ce860f98. Puente preservado byte a byte, SHA-256 6f1aa8ffc89c6f64fd440bd794a64a1aeccd0da35d0e768ab9949622b377f507. Sin instalación ni publicación externa.
+
+# Historial: estadísticas y configuración inmediata · Helper 1.29.3 (2026-10-14)
 
 Desde 1.29.3 el addon no escribe estilos ni posiciones sobre C/V. Se retira el anclaje a las esquinas superiores que hacía mountStats en cada refresh, incluso con estadísticas apagadas. El arrastre, bloqueo, escala y persistencia quedan a cargo del cliente nativo. El detalle permanece adjunto a C y solo acomoda su propio host alrededor de la posición medida, sin mover C ni inventario.
 

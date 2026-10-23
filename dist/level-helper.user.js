@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MU · Level & Reset Helper
 // @namespace    local.mu.level-helper
-// @version      1.29.3
-// @description  Leveleo/reset, party y loot; inicio manual.
+// @version      1.31.4
+// @description  Leveleo/reset, party y loot; inicio manual o por horario de Argentina.
 // @match        https://mu.mormon.garden/*
 // @run-at       document-idle
 // @grant        none
@@ -12,7 +12,7 @@
   'use strict';
   // The native character window in index-DnTsp0bZ / layout-DyxNG9m6 uses b2.
   // Reuse its cached module, never import a second engine or guess MU formulas.
-  const STATS_BUILDS=[{entry:'/assets/index-C399rQbj.js',module:'/assets/layout-68bM4dWi.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'np'},{entry:'/assets/index-CiMTJPU8.js',module:'/assets/layout-BSIMx9t6.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'n6',tooltip:'n8',name:'mx'},{entry:'/assets/index-DnTsp0bZ.js',module:'/assets/layout-DyxNG9m6.js',calculate:'b2',catalog:'bW',slots:'aM',itemStats:'nj'}];
+  const STATS_BUILDS=[{entry:'/assets/index-C5JIMxmo.js',module:'/assets/layout-A1P3A0u1.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'nF',tooltip:'nH',name:'fg',wizardrySlot:0},{entry:'/assets/index-D-gOSya0.js',module:'/assets/layout-DCITLqBq.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'nF',tooltip:'nH',name:'fd',wizardrySlot:0},{entry:'/assets/index-Do3IjarP.js',module:'/assets/layout-CoOAKkh-.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'nC',tooltip:'nE',name:'fd',wizardrySlot:0},{entry:'/assets/index-URnTVW_1.js',module:'/assets/layout-DQbdTT-G.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'nC',tooltip:'nE',name:'fd',wizardrySlot:0},{entry:'/assets/index-C399rQbj.js',module:'/assets/layout-68bM4dWi.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'np'},{entry:'/assets/index-CiMTJPU8.js',module:'/assets/layout-BSIMx9t6.js',calculate:'b1',catalog:'bU',slots:'aL',itemStats:'n6',tooltip:'n8',name:'mx'},{entry:'/assets/index-DnTsp0bZ.js',module:'/assets/layout-DyxNG9m6.js',calculate:'b2',catalog:'bW',slots:'aM',itemStats:'nj'}];
   const EQUIPMENT_SLOTS=['Mano 0','Mano 1','Casco','Armadura','Pantalones','Guantes','Botas','Alas','Mascota','Pendant','Anillo 1','Anillo 2'];
   function equipmentStats(equipment,native,pd){
     return EQUIPMENT_SLOTS.map((label,slot)=>{
@@ -49,14 +49,14 @@
     if(!account||store?.gsSocket?.readyState!==1||store.connectionLost||store.isOffline||store.uiState!==5||store.sceneLoading||store.spritesLoading||!world?.playerEntity||!pd?.name)return null;
     const liveAccount=account==='demo'?account:accountIdentity(store);if(liveAccount!==account)return null;
     const identity=JSON.stringify([account,serverKey(store.gsSocket.url),pd.name,pd.charClass]);
-    let equipment=null;try{if(Array.isArray(pd.items))equipment=Array.from({length:12},(_,i)=>i<pd.items.length?JSON.parse(JSON.stringify(pd.items[i]??null)):undefined);}catch{}
+    let equipment=null;try{if(Array.isArray(pd.items))equipment=Array.from({length:12},(_,i)=>pd.items[i]===undefined?undefined:JSON.parse(JSON.stringify(pd.items[i])));}catch{}
     const metrics=STATS_FIELDS.map(([key,label])=>({key,label,value:statsNumber(pd[key]),source:'Informado por el cliente'}));
     let derived=null;
     if(native&&equipment&&['level','str','agi','sta','eng','leadership','charClass'].every(key=>statsNumber(pd[key])!==null)){
       try{const known=equipment.map(item=>item!==undefined&&(!item||(Number.isInteger(item.lvl)&&item.lvl>=0&&item.lvl<=15&&typeof item.isExcellent==='boolean'&&native.hasItem(item))));derived=native.calculate({charClass:pd.charClass,level:pd.level,strength:pd.str,agility:pd.agi,vitality:pd.sta,energy:pd.eng,leadership:pd.leadership,items:equipment.map((item,i)=>known[i]?item:null)});
         // Only retain metrics whose equipment dependencies are fully known.
         if(!known[0]||!known[1])for(const key of ['damageMin','damageMax'])derived[key]=null;
-        if(!known[1])for(const key of ['wizardryMin','wizardryMax','staffRate'])derived[key]=null;
+        if(!known[native.wizardrySlot??1])for(const key of ['wizardryMin','wizardryMax','staffRate'])derived[key]=null;
         if(!known.slice(0,8).every(Boolean))derived.defense=null;
         if(!known[0])derived.defenseRate=null;
       }catch{}
@@ -65,7 +65,7 @@
     const staffs=equipment?.slice(0,2).map((item,slot)=>({item,slot})).filter(value=>value.item?.group===5)??[];
     const staff=staffs.length===1?staffs[0]:null;let tooltip=null;
     try{if(staff&&native?.itemStats&&Number.isInteger(staff.item.lvl)&&staff.item.lvl>=0&&staff.item.lvl<=15&&typeof staff.item.isExcellent==='boolean')tooltip=native.itemStats(staff.item);}catch{}
-    const staffSource=staff?(tooltip?'Tooltip del cliente · slot '+staff.slot+'; no aplicado al rango nativo':'Tooltip no disponible: falta catálogo, nivel/opciones o adaptador compatible'):'Staff ausente, ambiguo o equipo no disponible';
+    const staffSource=staff?(tooltip?'Tooltip del cliente · slot '+staff.slot+'; porcentaje separado, sin multiplicar el rango nativo':'Tooltip no disponible: falta catálogo, nivel/opciones o adaptador compatible'):'Staff ausente, ambiguo o equipo no disponible';
     metrics.splice(STATS_DERIVED.length,0,{key:'staffTooltipRate',label:'Wizardry staff · tooltip (%)',value:statsNumber(tooltip?.magicPower),source:staffSource},
       {key:'staffAdditional',label:'Additional Wizardry (puntos)',value:tooltip&&Number.isInteger(staff?.item.optionLevel)&&staff.item.optionLevel>=0&&staff.item.optionLevel<=7?staff.item.optionLevel*4:null,source:staffSource},
       {key:'excellentRate',label:'Excellent Damage Rate (%)',value:tooltip&&Number.isInteger(staff?.item.excellentFlags)&&staff.item.excellentFlags>=0&&staff.item.excellentFlags<=63?(staff.item.excellentFlags&32?10:0):null,source:staffSource},
@@ -77,7 +77,7 @@
       let name;try{name=native?.name(item);}catch{}
       return `${EQUIPMENT_SLOTS[slot]}: ${name||`Item ${item.group}/${item.num}`} +${item.lvl??'?'}${item.group===5?' · Staff':''}`;
     }).join(' · '):'Equipo no disponible';
-    return{identity,name:pd.name,at,equipment,equipmentDetails:equipmentStats(equipment,native,pd),equipmentLabel,metrics,staffWarning:staff?.slot===0?'El rango nativo omite el staff en slot 0: Wizardry solo consulta slot 1. El tooltip se muestra separado, sin estimar daño efectivo.':staffs.length>1?'Dos staffs: no se elige un bonus único.':null,conditions:{skill:statsNumber(store.currentSkill),buffs:null}};
+    return{identity,name:pd.name,at,equipment,equipmentDetails:equipmentStats(equipment,native,pd),equipmentLabel,metrics,staffWarning:staff&&native&&staff.slot!==(native.wizardrySlot??1)?'El rango nativo omite el staff en slot '+staff.slot+': Wizardry solo consulta slot '+(native.wizardrySlot??1)+'. El tooltip se muestra separado, sin estimar daño efectivo.':staffs.length>1?'Dos staffs: C consulta slot '+(native?.wizardrySlot??1)+'; no se elige un bonus único de tooltip.':null,conditions:{skill:statsNumber(store.currentSkill),buffs:null}};
   }
   function compareStats(a,b){
     if(!a||!b||a.identity!==b.identity)return null;
@@ -103,6 +103,37 @@
     const slash=token.lastIndexOf('/');if(slash<=0)return null;
     return JSON.stringify([token.slice(0,slash),username]);
   }
+  const SCHEDULE_DEFAULTS={version:1,enabled:false,start:'02:00',end:'06:00'};
+  const SCHEDULE_ZONE='America/Argentina/Buenos_Aires';
+  const scheduleMinutes=value=>typeof value==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)?Number(value.slice(0,2))*60+Number(value.slice(3)):NaN;
+  function validSchedule(value){return value===undefined||value?.version===1&&typeof value.enabled==='boolean'&&Number.isFinite(scheduleMinutes(value.start))&&Number.isFinite(scheduleMinutes(value.end))&&value.start!==value.end;}
+  const scheduleClock=new Intl.DateTimeFormat('en-CA',{timeZone:SCHEDULE_ZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+  function scheduleParts(now){return Object.fromEntries(scheduleClock.formatToParts(new Date(now)).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));}
+  // Resolve a local calendar timestamp through the IANA formatter, never a fixed offset.
+  function scheduleInstant(wall){let result=wall;for(let i=0;i<4;i++){const p=scheduleParts(result),shown=Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second),delta=wall-shown;result+=delta;if(!delta)break;}return result;}
+  function scheduleWindow(config,now){
+    const c=config??SCHEDULE_DEFAULTS;if(!validSchedule(c))throw Error('Horario inválido');
+    const p=scheduleParts(now),day=Date.UTC(p.year,p.month-1,p.day),a=scheduleMinutes(c.start),b=scheduleMinutes(c.end),minute=p.hour*60+p.minute,overnight=a>b;
+    const startDay=day-(overnight&&minute<b?86400000:0),start=scheduleInstant(startDay+a*60000),end=scheduleInstant(startDay+(overnight?86400000:0)+b*60000);
+    return {enabled:c.enabled,active:c.enabled&&now>=start&&now<end,start,end};
+  }
+  class DailySchedule {
+    constructor(record=null){
+      if(record!==null&&!(record?.version===1&&['start','end','pausedUntil','failedUntil','leaseUntil'].every(k=>Number.isFinite(record[k])&&record[k]>=0)&&['attempted','running'].every(k=>typeof record[k]==='boolean')&&['failed','character','leaseOwner'].every(k=>typeof record[k]==='string')))throw Error('Registro de programación inválido');
+      this.record=record??{version:1,start:0,end:0,pausedUntil:0,failedUntil:0,attempted:false,running:false,failed:'',character:'',leaseOwner:'',leaseUntil:0};
+    }
+    sync(config,now){
+      const w=scheduleWindow(config,now),r=this.record;
+      if(w.active&&r.start!==w.start){const pausedUntil=r.pausedUntil>now?Math.max(r.pausedUntil,w.end):0,failedUntil=r.failedUntil>now?Math.max(r.failedUntil,w.end):0;this.record={version:1,start:w.start,end:w.end,pausedUntil,failedUntil,attempted:!!failedUntil,running:false,failed:failedUntil?r.failed:'',character:failedUntil?r.character:'',leaseOwner:'',leaseUntil:0};}
+      else if(w.active){r.end=w.end;if(r.pausedUntil>now)r.pausedUntil=Math.max(r.pausedUntil,w.end);if(r.failedUntil>now)r.failedUntil=Math.max(r.failedUntil,w.end);}
+      return w;
+    }
+    pause(now,end){this.record.pausedUntil=Math.max(this.record.pausedUntil,end);this.record.running=false;this.record.leaseUntil=0;}
+    attempt(character,owner,now,end){Object.assign(this.record,{attempted:true,running:false,failed:'Inicio interrumpido; pulsá Play para reintentar',failedUntil:end,character,leaseOwner:owner,leaseUntil:now+3000,end});}
+    claim(character,owner,now){Object.assign(this.record,{attempted:true,running:true,failed:'',failedUntil:0,character,leaseOwner:owner,leaseUntil:now+3000});}
+    fail(message){this.record.failed=message||'El ciclo se detuvo; pulsá Play para reintentar';this.record.failedUntil=this.record.end;this.record.running=false;this.record.leaseUntil=0;}
+    blocked(now,character,owner){const r=this.record;return r.pausedUntil>now?'Pausado manualmente hasta el fin de esta franja':r.failed?r.failed:r.attempted&&r.character!==character?'Cambió el personaje; pulsá Play para iniciar':r.leaseOwner!==owner&&r.leaseUntil>now?'Helper controlado en otra pestaña':'';}
+  }
   class AccountSettings {
     constructor(storage,base){this.storage=storage;this.base=base;}
     key(identity){if(!identity)throw Error('Cuenta desconocida');return this.base+'.account.'+encodeURIComponent(identity);}
@@ -118,9 +149,9 @@
   // Arena variants must use their explicit chat teleport, not the M index.
   for(const m of LEVEL_MAPS)if(!/^arena[234]$/.test(m.id))m.warpIndex=WARP_INDEX[m.id];
   const levelMap=id=>LEVEL_MAPS.find(m=>m.id===id);
-  // Warp window supplied by the user; playerData.charClass uses CharacterClass 12/13.
+  // Warp window minima: CharacterClass MG 12/13 and audited DL 16/17 use 66%.
   const MG_MINIMUMS={arena:33,atlans:46,lorencia:6,noria:6,devias:13,devias2:13,devias3:13,devias4:13,dungeon:19,dungeon2:26,dungeon3:33,arena2:66,arena3:132,arena4:198,losttower:33,losttower2:33,losttower3:33,losttower4:39,losttower5:39,losttower6:46,losttower7:46,atlans2:52,atlans3:59,tarkan:92,tarkan2:92,icarus:112};
-  function minimumLevel(id,charClass){const m=levelMap(id);return m?(charClass===12||charClass===13||charClass==='stored'?MG_MINIMUMS[id]:m.minLevel):Infinity;}
+  function minimumLevel(id,charClass){const m=levelMap(id);return m?(charClass===12||charClass===13||charClass===16||charClass===17||charClass==='stored'?MG_MINIMUMS[id]:m.minLevel):Infinity;}
   function currentPathStep(s,path){
     const m=s?.ready&&LEVEL_MAPS.find(m=>m.map===s.map);
     if(m&&Number.isFinite(s.position?.x)&&Number.isFinite(s.position?.y))return{map:m.id,level:s.level,x:Math.floor(s.position.x),y:Math.floor(s.position.y)};
@@ -149,7 +180,7 @@
   }
   function levelPath(config,charClass){if(config.path)return config.path;return ['lorencia',...(config.arena===false?[]:['arena']),...(config.icarus===false?[]:['icarus'])].map(id=>({map:id,level:minimumLevel(id,charClass),...(config.spots??DEFAULTS.spots)[id]}));}
   function validPath(path,charClass){return Array.isArray(path)&&path.length>=1&&path.length<=26&&path.some(p=>p?.enabled!==false)&&path.every((p,i)=>(p?.enabled===undefined||typeof p.enabled==='boolean')&&levelMap(p?.map)&&Number.isInteger(p.level)&&p.level>=minimumLevel(p.map,charClass)&&p.level<=399&&(!i||p.level>path[i-1].level)&&['x','y'].every(a=>Number.isInteger(p[a])&&p[a]>=0&&p[a]<=255));}
-  function validPreferences(value,charClass){return value?.version===1 && validLeveling(value,charClass) && validRoutes(value,value.leveling?'stored':charClass) && (value.sendPartyOutside===undefined||typeof value.sendPartyOutside==='boolean') && (value.balrogEnabled===undefined||typeof value.balrogEnabled==='boolean') && (value.pairInventory===undefined||typeof value.pairInventory==='boolean') && (value.detailedStats===undefined||typeof value.detailedStats==='boolean') && (value.wingStyle===undefined||!!wingStyleOption(value.wingStyle)) && validGoldPreferences(value,charClass) && (value.soulShield===undefined||typeof value.soulShield==='boolean') && (value.autoReset===undefined||typeof value.autoReset==='boolean') && (value.path===undefined||validPath(value.path,value.leveling?'stored':charClass)) && validLootPreferences(value) && ['arena','icarus'].every(id=>value[id]===undefined||typeof value[id]==='boolean') && typeof value.sendParty==='boolean' && typeof value.acceptParty==='boolean' && ['lorencia','arena','icarus'].every(id=>['x','y'].every(axis=>Number.isInteger(value.spots?.[id]?.[axis])&&value.spots[id][axis]>=0&&value.spots[id][axis]<=255));}
+  function validPreferences(value,charClass){return value?.version===1 && validSchedule(value.schedule) && validLeveling(value,charClass) && validRoutes(value,value.leveling?'stored':charClass) && (value.sendPartyOutside===undefined||typeof value.sendPartyOutside==='boolean') && (value.balrogEnabled===undefined||typeof value.balrogEnabled==='boolean') && (value.pairInventory===undefined||typeof value.pairInventory==='boolean') && (value.detailedStats===undefined||typeof value.detailedStats==='boolean') && (value.hideHelmet===undefined||typeof value.hideHelmet==='boolean') && (value.wingStyle===undefined||!!wingStyleOption(value.wingStyle)) && validGoldPreferences(value,charClass) && (value.soulShield===undefined||typeof value.soulShield==='boolean') && (value.autoReset===undefined||typeof value.autoReset==='boolean') && (value.path===undefined||validPath(value.path,value.leveling?'stored':charClass)) && validLootPreferences(value) && ['arena','icarus'].every(id=>value[id]===undefined||typeof value[id]==='boolean') && typeof value.sendParty==='boolean' && typeof value.acceptParty==='boolean' && ['lorencia','arena','icarus'].every(id=>['x','y'].every(axis=>Number.isInteger(value.spots?.[id]?.[axis])&&value.spots[id][axis]>=0&&value.spots[id][axis]<=255));}
   const ROUTE_MAPS=['lorencia','noria','arena','arena2','arena3','arena4'];
   function routeBank(value,charClass){return value.routes??[{name:'Ruta actual',path:levelPath(value,charClass),alternatives:[]}];}
   function validLeveling(value,charClass){
@@ -326,7 +357,14 @@
         const firstIndex=this.config.path?.findIndex(p=>p.enabled!==false),first=this.config.path?.[firstIndex],entry=first&&levelMap(first.map),base=LEVEL_MAPS.find(m=>m.map===s.map&&this.config.spots?.[m.id]);
         target=entry?.map===s.map?{...entry,x:first.x,y:first.y,stepIndex:firstIndex}:base?{...base,...this.config.spots[base.id]}:{id:'initial',name:'mapa inicial',map:s.map,...(this.initialSpot.map===s.map?{x:this.initialSpot.x,y:this.initialSpot.y}:s.position)};
       }
-      if(!this.stage || this.stage.id!==target.id || this.stage.stepIndex!==target.stepIndex || this.stage.x!==target.x || this.stage.y!==target.y){this.needsWarp=!!((this.config.path||this.config.leveling)&&s.level>=target.minLevel&&((this.stage&&this.stage.id!==target.id&&this.stage.map===target.map&&target.id!=='initial')||(!this.stage&&((/^arena[234]$/.test(target.id)&&s.map!==target.map)||(this.config.leveling&&s.map===target.map&&LEVEL_MAPS.filter(m=>m.map===s.map).length>1)))));this.lastCommand=-Infinity;this.stage=target;this.settled=false;this.progressAt=now;this.bestDistance=Infinity;this.pending=null;}
+      if(!this.stage || this.stage.id!==target.id || this.stage.stepIndex!==target.stepIndex || this.stage.x!==target.x || this.stage.y!==target.y){
+        // Shared world IDs cannot identify a warp destination. At startup only,
+        // being within the normal spot arrival tolerance makes that warp needless.
+        // A real stage change to another variant still requires its own arrival.
+        const sharedWorldAway=this.config.leveling&&s.map===target.map&&LEVEL_MAPS.filter(m=>m.map===s.map).length>1&&distance(s.position,target)>2;
+        this.needsWarp=!!((this.config.path||this.config.leveling)&&s.level>=target.minLevel&&((this.stage&&this.stage.id!==target.id&&this.stage.map===target.map&&target.id!=='initial')||(!this.stage&&((/^arena[234]$/.test(target.id)&&s.map!==target.map)||sharedWorldAway))));
+        this.lastCommand=-Infinity;this.stage=target;this.settled=false;this.progressAt=now;this.bestDistance=Infinity;this.pending=null;
+      }
       if(this.pending?.kind==='warp'){
         if(s.map===this.stage.map&&(!this.pending.sameMap||s.warpSerial>this.pending.serial)){this.pending=null;this.needsWarp=false;this.settled=false;this.progressAt=now;this.bestDistance=Infinity;}
         else if(now-this.pending.at>(this.stage.id==='arena'?5000:20000)){
@@ -371,15 +409,16 @@
   }
   const normalizeLootName=value=>value.normalize('NFKC').toLowerCase().trim().replace(/\s+/g,' ');
   function lootNames(text){return [...new Set(text.split(/\r?\n/).map(normalizeLootName).filter(Boolean))];}
-  const LOOT_DEFAULTS={enabled:false,range:5,all:false,jewels:false,zen:false,ancient:false,excellent:false,namesEnabled:false,nameExcellent:true,nameLuck:true};
+  const LOOT_DEFAULTS={enabled:false,range:5,all:false,jewels:false,zen:false,ancient:false,excellent:false,kundun:false,namesEnabled:false,nameExcellent:true,nameLuck:true};
   function lootPolicy(value){return value.loot??{...LOOT_DEFAULTS,enabled:!!value.excellentLoot,namesEnabled:true};}
-  function validLootPreferences(value){return (value.loot===undefined||(value.loot&&Number.isInteger(value.loot.range)&&value.loot.range>=1&&value.loot.range<=8&&['enabled','all','jewels','zen','ancient','excellent','namesEnabled','nameExcellent','nameLuck'].every(k=>typeof value.loot[k]==='boolean'))) && (value.excellentLoot===undefined||typeof value.excellentLoot==='boolean') && (value.excellentNames===undefined||(Array.isArray(value.excellentNames)&&value.excellentNames.length<=50&&value.excellentNames.every(name=>typeof name==='string'&&name.trim().length>0&&name.length<=80)));}
+  function validLootPreferences(value){return (value.loot===undefined||(value.loot&&Number.isInteger(value.loot.range)&&value.loot.range>=1&&value.loot.range<=8&&(value.loot.kundun===undefined||typeof value.loot.kundun==='boolean')&&['enabled','all','jewels','zen','ancient','excellent','namesEnabled','nameExcellent','nameLuck'].every(k=>typeof value.loot[k]==='boolean'))) && (value.excellentLoot===undefined||typeof value.excellentLoot==='boolean') && (value.excellentNames===undefined||(Array.isArray(value.excellentNames)&&value.excellentNames.length<=50&&value.excellentNames.every(name=>typeof name==='string'&&name.trim().length>0&&name.length<=80)));}
   function matchesLoot(entity,preferences){
     if(!preferences.loot)return matchesExcellentLoot(entity,preferences.excellentNames??[]);
     const p=preferences.loot,drop=entity?.droppedItem,item=drop?.item;
     if(!drop)return false;
     if(drop.isMoney)return p.all||p.zen;
     if(!item)return false;
+    if(p.kundun===true&&isKundun(item))return true;
     if(p.all||p.ancient&&item.isAncient===true||p.excellent&&item.isExcellent===true)return true;
     const group=drop.group??item.group,num=drop.num??item.num;
     if(p.jewels&&(group===12&&num===15||group===14&&[13,14,16,22,31,41,42,43,44].includes(num)))return true;
@@ -406,7 +445,7 @@
     return settings.broad?'Loot: desactivá Todo, Excellent, Ancient y nombres en Home; Zen y jewels pueden seguir activos.':'';
   }
   class ExcellentLoot {
-    constructor(){this.pending=null;this.skipped=new WeakMap();this.done=new WeakSet();this.message='';}
+    constructor(){this.pending=null;this.skipped=new WeakMap();this.attempts=new WeakMap();this.done=new WeakSet();this.message='';}
     clear(){
       const pending=this.pending;if(!pending)return;
       const {world,entity}=pending,hero=world.playerEntity;
@@ -421,7 +460,7 @@
       }
       this.pending=null;
     }
-    failed(now){if(!this.pending)return;this.skipped.set(this.pending.entity,now+60000);this.clear();this.message='Loot rechazado o sin confirmar; se omite ese drop durante un minuto.';}
+    failed(now){if(!this.pending)return;const {entity,kundun}=this.pending;const attempts=(this.attempts.get(entity)??0)+1;const retry=kundun&&attempts<3;this.attempts.set(entity,retry?attempts:0);this.skipped.set(entity,now+(retry?2000:60000));this.clear();this.message=retry?'Kundun: recogida rechazada o sin confirmar; próximo intento en 2 segundos.':'Loot rechazado o sin confirmar; se omite ese drop durante un minuto.';}
     confirm(packet){
       if(!this.pending||!(packet instanceof DataView)||packet.byteLength<4||![0xc1,0xc3].includes(packet.getUint8(0))||packet.getUint8(2)!==0x22)return false;
       if(this.pending.entity.droppedItem?.isMoney){if(packet.getUint8(3)!==0xfe||packet.byteLength<8)return false;this.done.add(this.pending.entity);this.clear();this.message='';return true;}
@@ -432,17 +471,21 @@
     }
     step(cycle,s,world,store,preferences,now,hunting=false,demo=false){
       const names=preferences.excellentNames??[],policy=lootPolicy(preferences),settings=nativeLootSettings(store?.muHelper?.config,demo);
-      const allowed=cycle.running&&cycle.settled&&s.ready&&!s.loading&&!s.dead&&!hunting&&policy.enabled&&(preferences.loot||names.length)&&store?.muHelper?.active&&settings&&!nativeLootConflict(preferences,store.muHelper.config,demo)&&typeof store.pickupItemRequest==='function'&&world&&'pickupTarget' in world;
-      if(!allowed){this.clear();return;}
+      if(!policy.kundun&&this.message.startsWith('Kundun:'))this.message='';
+      const dedicated=entity=>policy.kundun===true&&entity?.droppedItem?.isMoney!==true&&isKundun(entity?.droppedItem?.item);
+      const conflict=nativeLootConflict(preferences,store?.muHelper?.config,demo);
+      const allowed=cycle.running&&s.ready&&!s.loading&&!s.dead&&!hunting&&policy.enabled&&(preferences.loot||names.length)&&store?.muHelper?.active&&settings&&!conflict&&typeof store.pickupItemRequest==='function'&&world&&'pickupTarget' in world;
+      if(!allowed){this.clear();if(policy.enabled&&policy.kundun)this.message=conflict||(!cycle.running?'Kundun: esperando Play del addon.':!s.ready||s.loading||s.dead?'Kundun: esperando personaje disponible.':hunting?'Kundun: esperando terminar viaje, reset o caza.':!store?.muHelper?.active?'Kundun: esperando Home activo.':'Kundun: recogida no disponible en este cliente.');else if(this.message.startsWith('Kundun:'))this.message='';return;}
       if(this.pending){
-        if(this.pending.world!==world||this.pending.hero!==world.playerEntity||this.pending.map!==s.map||!matchesLoot(this.pending.entity,preferences)){this.clear();return;}
+        if(this.pending.world!==world||this.pending.hero!==world.playerEntity||this.pending.map!==s.map||!matchesLoot(this.pending.entity,preferences)||this.pending.kundun&&!dedicated(this.pending.entity)||!dedicated(this.pending.entity)&&!cycle.settled){this.clear();return;}
         if(world.pickupTarget&&world.pickupTarget!==this.pending.entity){this.clear();return;}
         if(now-this.pending.at>=15000)this.failed(now);
         return;
       }
-      if(world.pickupTarget||store.pendingItemMove||store.pickedItem||world.playerEntity?.attributeSystem?.isAboveZero('inSafeZone'))return;
+      if(world.pickupTarget||store.pendingItemMove||store.pickedItem||world.playerEntity?.attributeSystem?.isAboveZero('inSafeZone')){if(policy.kundun)this.message='Kundun: esperando liberar la recogida o salir de zona segura.';return;}
       const maxDistance=Math.ceil(Math.SQRT2*Math.max(0,Math.min(8,preferences.loot?policy.range:settings.range))),center=cycle.stage??route(s.level,cycle.config)??s.position;
-      const candidates=(world.netObjsQuery?.entities??[]).filter(e=>huntVisible(e,s.map)&&e.worldIndex===s.map&&e.droppedItem&&!this.done.has(e)&&(this.skipped.get(e)??0)<=now&&matchesLoot(e,preferences)&&(e.droppedItem.isMoney?zenInReach(e,s.position)&&Number.isInteger(e.netId):distance(s.position,{x:e.transform.pos.x,y:e.transform.pos.z})<=maxDistance)&&distance(center,{x:e.transform.pos.x,y:e.transform.pos.z})<=cycle.config.radius).sort((a,b)=>distance(s.position,{x:a.transform.pos.x,y:a.transform.pos.z})-distance(s.position,{x:b.transform.pos.x,y:b.transform.pos.z}));
+      const candidates=(world.netObjsQuery?.entities??[]).filter(e=>huntVisible(e,s.map)&&e.worldIndex===s.map&&e.droppedItem&&!this.done.has(e)&&(this.skipped.get(e)??0)<=now&&matchesLoot(e,preferences)&&(e.droppedItem.isMoney?zenInReach(e,s.position)&&Number.isInteger(e.netId):distance(s.position,{x:e.transform.pos.x,y:e.transform.pos.z})<=maxDistance)&&(dedicated(e)||cycle.settled&&distance(center,{x:e.transform.pos.x,y:e.transform.pos.z})<=cycle.config.radius)).sort((a,b)=>Number(dedicated(b))-Number(dedicated(a))||distance(s.position,{x:a.transform.pos.x,y:a.transform.pos.z})-distance(s.position,{x:b.transform.pos.x,y:b.transform.pos.z}));
+      if(policy.kundun)this.message=(world.netObjsQuery?.entities??[]).some(e=>dedicated(e)&&(this.skipped.get(e)??0)>now)?'Kundun: esperando reintento tras rechazo o camino bloqueado.':'Kundun: sin cajas accesibles dentro del rango.';
       for(const entity of candidates){
         const pos=entity.transform.pos;
         if(entity.droppedItem.isMoney){
@@ -456,7 +499,7 @@
           const path=world.pathfinder.search({x:Math.floor(s.position.x),y:Math.floor(s.position.y)},{x:Math.floor(pos.x),y:Math.floor(pos.z)},{closest:true});
           if((!path?.length&&distance(s.position,{x:pos.x,y:pos.z})>1.5)||(path?.length&&distance(path[path.length-1],{x:pos.x,y:pos.z})>1.5)){this.skipped.set(entity,now+60000);continue;}
         }
-        this.pending={world,hero:world.playerEntity,map:s.map,entity,at:now};world.pickupTarget=entity;this.message='';return;
+        this.pending={world,hero:world.playerEntity,map:s.map,entity,at:now,kundun:dedicated(entity)};world.pickupTarget=entity;this.message=this.pending.kundun?`Kundun: recogiendo +${entity.droppedItem.item.lvl-7}.`:'';return;
       }
     }
   }
@@ -855,7 +898,7 @@
       }catch(error){this.style='original';this.detach();this.message='Apariencia de alas no disponible';console.error('[Helper alas]',error);}
     }
   }
-  if(typeof module==='object' && module.exports && typeof document==='undefined'){module.exports={BalrogEvent,BalrogTrip,balrogNotice,balrogIdentity,MapVisit,validLeveling,migrateLeveling,usableLevelMaps,LevelSpots,RouteVariation,observedRoute,levelMonster,routeBank,validRoutes,capturePathLocation,pairCharacterInventory,equipmentStats,EQUIPMENT_SLOTS,characterStats,compareStats,StatsComparison,STATS_FIELDS,STATS_DERIVED,minimumLevel,MG_MINIMUMS,accountIdentity,AccountSettings,WING_STYLES,wingStyleOption,WingStyle,currentPathStep,warpDestination,SoulShield,goldPreferences,validGoldPreferences,huntCanStart,remainingMap,LEVEL_MAPS,levelPath,validPath,LOOT_DEFAULTS,lootPolicy,matchesLoot,zenInReach,ExcellentLoot,matchesExcellentLoot,lootNames,validLootPreferences,nativeLootSettings,nativeLootConflict,validPreferences,HideHelmet,Cycle,route,NativeHelper,NativeAutoParty,AutoParty,DEFAULTS,GoldenHunt,MoveLevels,HUNT_ROUTE,HUNT_ORDER,GOLD_LEVELS,huntVisible,killedPacket,huntPoints,isKundun,serverMessage,serverKey};return;}
+  if(typeof module==='object' && module.exports && typeof document==='undefined'){module.exports={DailySchedule,scheduleWindow,validSchedule,SCHEDULE_DEFAULTS,SCHEDULE_ZONE,BalrogEvent,BalrogTrip,balrogNotice,balrogIdentity,MapVisit,validLeveling,migrateLeveling,usableLevelMaps,LevelSpots,RouteVariation,observedRoute,levelMonster,routeBank,validRoutes,capturePathLocation,pairCharacterInventory,equipmentStats,EQUIPMENT_SLOTS,characterStats,compareStats,StatsComparison,STATS_FIELDS,STATS_DERIVED,minimumLevel,MG_MINIMUMS,accountIdentity,AccountSettings,WING_STYLES,wingStyleOption,WingStyle,currentPathStep,warpDestination,SoulShield,goldPreferences,validGoldPreferences,huntCanStart,remainingMap,LEVEL_MAPS,levelPath,validPath,LOOT_DEFAULTS,lootPolicy,matchesLoot,zenInReach,ExcellentLoot,matchesExcellentLoot,lootNames,validLootPreferences,nativeLootSettings,nativeLootConflict,validPreferences,HideHelmet,Cycle,route,NativeHelper,NativeAutoParty,AutoParty,DEFAULTS,GoldenHunt,MoveLevels,HUNT_ROUTE,HUNT_ORDER,GOLD_LEVELS,huntVisible,killedPacket,huntPoints,isKundun,serverMessage,serverKey};return;}
   if(location.hostname!=='mu.mormon.garden' && !window.__LEVEL_HELPER_DEMO__)return;
   if(document.getElementById('mu-level-helper'))return;
   const instanceKey=Symbol.for('mu.addons.instance.helper.v1');
@@ -958,7 +1001,7 @@
     if(location.origin!=='https://mu.mormon.garden')return;
     const build=STATS_BUILDS.find(build=>[...document.scripts].some(script=>new URL(script.src||location.href).pathname===build.entry));if(!build)return;
     statsNativeAttempted=true;
-    import(new URL(build.module,location.origin).href).then(module=>{const catalog=module[build.catalog],slots=module[build.slots];if(typeof module[build.calculate]==='function'&&typeof catalog?.getItem==='function'&&slots?.LeftHandSlot===0&&slots?.RightHandSlot===1&&slots?.LastEquippableItemSlotIndex===11)statsNative={calculate:module[build.calculate],hasItem:item=>!!catalog.getItem(item.group,item.num),name:item=>build.name&&typeof module[build.name]==='function'?module[build.name](item):catalog.getItem(item.group,item.num)?.ItemName,itemStats:module[build.itemStats],tooltip:build.tooltip?module[build.tooltip]:null,compatible:true};}).catch(()=>{});
+    import(new URL(build.module,location.origin).href).then(module=>{const catalog=module[build.catalog],slots=module[build.slots];if(typeof module[build.calculate]==='function'&&typeof catalog?.getItem==='function'&&slots?.LeftHandSlot===0&&slots?.RightHandSlot===1&&slots?.LastEquippableItemSlotIndex===11&&(!build.tooltip||typeof module[build.tooltip]==='function')&&(!build.name||typeof module[build.name]==='function')&&(build.wizardrySlot===undefined||typeof module[build.itemStats]==='function'))statsNative={calculate:module[build.calculate],hasItem:item=>!!catalog.getItem(item.group,item.num),name:item=>build.name&&typeof module[build.name]==='function'?module[build.name](item):catalog.getItem(item.group,item.num)?.ItemName,itemStats:module[build.itemStats],tooltip:build.tooltip?module[build.tooltip]:null,wizardrySlot:build.wizardrySlot??1,compatible:true};}).catch(()=>{});
   }
   const statsValue=value=>value===null||value===undefined?'—':Number.isInteger(value)?String(value):value.toFixed(1);
   function refreshStats(){
@@ -998,6 +1041,88 @@
   if(!window.__LEVEL_HELPER_DEMO__&&[...document.scripts].some(s=>s.src.endsWith('/assets/index-Drn8eqTh.js'))){
     import('/assets/layout-DJi2NQ83.js').then(m=>{if(typeof m.ee==='function')balrogNative=m.ee;}).catch(()=>{});
   }
+  // A local ownership marker, not an authentication token; isolated blank demos lack randomUUID.
+  const scheduleOwner=globalThis.crypto?.randomUUID?.()??('schedule-'+Date.now()+'-'+Math.random().toString(36).slice(2)),scheduleBase=window.__LEVEL_HELPER_DEMO__?'mu.level-helper.demo-schedule-runtime.v1':'mu.level-helper.schedule-runtime.v1';
+  let scheduleBusy=false,scheduleManualBusy=false,scheduleControl=null,scheduleMessage='Programación desactivada',scheduleError='',scheduleObserved=false,scheduleScope=null,schedulePendingFailure='';
+  const scheduleConfig=()=>preferences.schedule??SCHEDULE_DEFAULTS;
+  const scheduleKey=owner=>scheduleBase+'.account.'+encodeURIComponent(owner);
+  function readSchedule(owner){const raw=localStorage.getItem(scheduleKey(owner));return new DailySchedule(raw===null?null:JSON.parse(raw));}
+  function writeSchedule(owner,policy){localStorage.setItem(scheduleKey(owner),JSON.stringify(policy.record));}
+  function scheduleLock(owner,action){if(legacyDemo)return Promise.resolve().then(action);if(!navigator.locks?.request)return Promise.reject(Error('Sin bloqueo seguro de programación'));return navigator.locks.request(scheduleKey(owner),action);}
+  function pauseLevel(message){
+    const hadControl=cycle.running||scheduleControl!==null,pending=cycle.pending,stopHome=desiredHelper!==null||native.pending!=null;
+    party.cancel();soulShield.clear(window.__world,window.__store);excellentLoot.clear();clearOwned();clearHuntTargets();
+    const awaiting=!!pending&&!queuedAction;
+    cycle.stop(message+(awaiting?' · solicitud enviada pendiente de confirmación':''));queuedAction=null;
+    if(hadControl&&!balrog.active&&stopHome)enact({kind:'stop'});
+    scheduleControl=null;scheduleObserved=false;
+  }
+  function scheduleStatus(){return {enabled:scheduleConfig().enabled,start:scheduleConfig().start,end:scheduleConfig().end,timeZone:SCHEDULE_ZONE,message:scheduleError||scheduleMessage,control:scheduleControl};}
+  function invalidateScheduleSession(message){
+    const owner=identity;if(!owner||!scheduleConfig().enabled||(!cycle.running&&!scheduleObserved))return;
+    scheduleControl=null;scheduleObserved=false;
+    scheduleLock(owner,()=>{const policy=readSchedule(owner);if(policy.record.leaseOwner===scheduleOwner){policy.fail(message);writeSchedule(owner,policy);}}).catch(()=>{});
+  }
+  function inhibitForCaza(now){
+    if(!scheduleConfig().enabled||!cycle.running)return;
+    const owner=identity,c=scheduleConfig(),w=scheduleWindow(c,now);scheduleControl=null;scheduleObserved=false;
+    if(owner&&w.active)scheduleLock(owner,()=>{const policy=readSchedule(owner);policy.sync(c,now);policy.pause(now,w.end);writeSchedule(owner,policy);}).catch(error=>{if(identity===owner)scheduleError='Inicio bloqueado: '+error.message;});
+  }
+  function evaluateSchedule(s,now){
+    const config=scheduleConfig(),w=scheduleWindow(config,now);
+    if(scheduleScope!==identity){scheduleScope=identity;scheduleControl=null;scheduleObserved=false;scheduleError='';schedulePendingFailure='';}
+    if(!config.enabled){scheduleMessage=cycle.running?'Programación desactivada · modo manual':'Programación desactivada';return;}
+    if(scheduleObserved&&!cycle.running&&!balrog.active){schedulePendingFailure=cycle.message;scheduleObserved=false;}
+    if(!w.active){if(cycle.running)pauseLevel('Fuera de horario · '+config.start+'–'+config.end+' · Hora de Argentina');scheduleMessage='Fuera de horario · '+config.start+'–'+config.end+' · Hora de Argentina';return;}
+    if(!identity||profileConflict||preferencesInvalid){scheduleMessage='Inicio bloqueado: cuenta o configuración no disponible';return;}
+    if(scheduleError){if(cycle.running)pauseLevel('Programación bloqueada: '+scheduleError);return;}
+    if(scheduleBusy||scheduleManualBusy)return;
+    const owner=identity,character=s.name;
+    scheduleBusy=true;
+    scheduleLock(owner,()=>{
+      if(scheduleManualBusy||identity!==owner||(!legacyDemo&&accountIdentity(window.__store)!==owner))return;
+      const current=snapshot(),at=Date.now(),c=scheduleConfig(),policy=readSchedule(owner),windowNow=policy.sync(c,at);
+      if(!windowNow.active||current.name!==character)return;
+      if(scheduleObserved&&!cycle.running&&!balrog.active){schedulePendingFailure=cycle.message;scheduleObserved=false;}
+      if(schedulePendingFailure){policy.fail(schedulePendingFailure);schedulePendingFailure='';writeSchedule(owner,policy);scheduleControl=null;}
+      const runtimeName=cycle.running&&cycle.pending?.kind==='reset'?cycle.name:current.name;
+      const blocked=policy.blocked(at,runtimeName,scheduleOwner);
+      if(blocked){scheduleMessage=blocked;if(cycle.running)pauseLevel(blocked);writeSchedule(owner,policy);return;}
+      if(balrog.active){scheduleMessage='Inicio bloqueado por Caza';return;}
+      if(cycle.running){
+        if(current.ready&&policy.record.character&&policy.record.character!==current.name){policy.pause(at,windowNow.end);writeSchedule(owner,policy);pauseLevel('Cambió el personaje; pulsá Play para iniciar');return;}
+        policy.claim(runtimeName,scheduleOwner,at);writeSchedule(owner,policy);scheduleObserved=true;scheduleMessage='Dentro de horario · '+(scheduleControl==='programmed'?'control programado':'control manual');return;
+      }
+      if(!current.ready||current.dead||current.loading||queuedAction||native.pending||desiredHelper===false){scheduleMessage='Inicio bloqueado: esperando personaje y confirmaciones pendientes';return;}
+      if(window.__store?.muHelper?.active&&desiredHelper===null){scheduleMessage='Inicio bloqueado: Home está bajo control manual';return;}
+      policy.attempt(current.name,scheduleOwner,at,windowNow.end);writeSchedule(owner,policy);
+      if(cycle.start(current,at)){policy.claim(current.name,scheduleOwner,at);writeSchedule(owner,policy);scheduleControl='programmed';scheduleObserved=true;scheduleMessage='Dentro de horario · control programado';}
+      else{policy.fail(cycle.message||'No se pudo iniciar; pulsá Play para reintentar');writeSchedule(owner,policy);scheduleMessage=policy.record.failed;}
+    }).catch(error=>{if(identity===owner){scheduleError='Inicio bloqueado: '+error.message;if(cycle.running)pauseLevel(scheduleError);}}).finally(()=>{scheduleBusy=false;});
+  }
+  async function manualLevelToggle(){
+    if(scheduleManualBusy)return;
+    syncAccount();const c=scheduleConfig(),now=Date.now(),w=scheduleWindow(c,now);
+    if(!identity||profileConflict||preferencesInvalid)return;
+    if(!c.enabled){if(balrog.active)stopBalrog('Caza pausada: se inició el leveleo');if(cycle.running)pauseLevel('Detenido');else{cycle.start(snapshot(),now);scheduleControl='manual';}refresh();return;}
+    if(!w.active){scheduleMessage='Fuera de horario · '+c.start+'–'+c.end+' · Hora de Argentina';cycle.message=scheduleMessage;render(snapshot());return;}
+    const owner=identity,wasRunning=cycle.running,character=snapshot().name;
+    scheduleManualBusy=true;
+    if(wasRunning)pauseLevel('Pausado manualmente');
+    try{await scheduleLock(owner,()=>{
+      if(identity!==owner||(!legacyDemo&&accountIdentity(window.__store)!==owner)||snapshot().name!==character)throw Error('Cambió la sesión');
+      const at=Date.now(),policy=readSchedule(owner),current=snapshot(),windowNow=policy.sync(scheduleConfig(),at);
+      if(wasRunning){policy.pause(at,Math.max(w.end,windowNow.active?windowNow.end:0));writeSchedule(owner,policy);scheduleMessage='Pausado manualmente hasta el fin de esta franja';return;}
+      if(!windowNow.active||!scheduleConfig().enabled)throw Error('Cambió el horario; volvé a pulsar Play');
+      if(policy.record.leaseOwner!==scheduleOwner&&policy.record.leaseUntil>at)throw Error('Helper controlado en otra pestaña');
+      if(balrog.active)stopBalrog('Caza pausada: se inició el leveleo');
+      policy.record.pausedUntil=0;policy.attempt(current.name,scheduleOwner,at,windowNow.end);writeSchedule(owner,policy);
+      if(cycle.start(current,at)){policy.claim(current.name,scheduleOwner,at);writeSchedule(owner,policy);scheduleControl='manual';scheduleObserved=true;schedulePendingFailure='';scheduleError='';}
+      else{policy.fail(cycle.message);writeSchedule(owner,policy);}
+    });}catch(error){if(identity===owner)scheduleError='Inicio bloqueado: '+error.message;}
+    finally{scheduleManualBusy=false;}
+    refresh();
+  }
   function stopBalrog(message){enact(balrog.stop(message));}
   function updateBalrogEvent(s,now){
     const key=balrogIdentity(s);
@@ -1010,7 +1135,7 @@
     if(balrog.active){stopBalrog('Caza pausada');refresh();return;}
     if(!identity||profileConflict||preferencesInvalid||preferences.balrogEnabled!==true)return;
     if(cycle.pending||queuedAction||native.pending||window.__store?.sceneLoading){balrog.message='Caza bloqueada: esperá la confirmación del reset, viaje o Home pendiente';renderBalrog(s);return;}
-    if(balrog.start(s,balrogEvent.get(now),now)){cycle.stop('Leveleo pausado durante Caza');soulShield.clear(window.__world,window.__store);excellentLoot.clear();clearOwned();clearHuntTargets();desiredHelper=false;}
+    if(balrog.start(s,balrogEvent.get(now),now)){inhibitForCaza(now);cycle.stop('Leveleo pausado durante Caza');soulShield.clear(window.__world,window.__store);excellentLoot.clear();clearOwned();clearHuntTargets();desiredHelper=false;}
     refresh();
   }
   function balrogState(){const e=balrogEvent.get(Date.now()),s=snapshot();return{enabled:preferences.balrogEnabled===true,active:balrog.active,ready:!!e&&s.ready&&!s.dead&&!s.loading&&!!identity&&!profileConflict&&!preferencesInvalid,message:balrog.message,destination:e?`${e.destination.name} ${e.x}, ${e.y}`:null};}
@@ -1153,19 +1278,19 @@
     }
   }
   const hideHelmet=new HideHelmet(),wingStyle=new WingStyle();
-  wingStyle.style=preferences.wingStyle??'original';
+  wingStyle.style=preferences.wingStyle??'original';hideHelmet.enabled=preferences.hideHelmet===true;
   const settingsHost=document.createElement('div'),settingsRoot=settingsHost.attachShadow({mode:'open'});
   settingsRoot.innerHTML=`<style>
 :host{display:block;font:12px Verdana,sans-serif;color:#eee6d1;color-scheme:dark}*{box-sizing:border-box}[hidden]{display:none!important}h3,summary{color:#e7c780;font-size:12px}summary{cursor:pointer;padding:10px 0}details{border-top:1px solid #76633d;margin-top:12px}button,select,input[type=number],input[type=text],textarea{font:inherit;color:#eee6d1;background:#15170f;border:1px solid #76633d;border-radius:4px;padding:7px;min-width:0}button{color:#e7c780;cursor:pointer}button:disabled{opacity:.4;cursor:default}input[type=number]{width:100%}.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:10px 0}.tabs button{flex:1}.tabs [aria-selected=true]{background:#e7c780;color:#15170f}.step,.gold-step{border:1px solid #76633d;border-radius:6px;padding:10px;margin:8px 0}.step[data-enabled=false]{border-style:dashed;background:#202219}.step-enabled{accent-color:#a4c880;flex-shrink:0;width:18px;height:18px}.step-state{font-size:11px;color:#aeb6a0;margin:0 0 7px}.step-head{display:flex;align-items:center;gap:5px;margin-bottom:8px}.step-head select{flex:1;width:100%}.step-head button{padding:4px 6px}.step-fields{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}.step-fields label{display:grid;gap:5px;font-size:11px}.min-level,.help{color:#aeb6a0;font-size:11px;line-height:1.5}.min-level{margin:7px 0 0}.add-step{width:100%;border-style:dashed}.switch{display:flex;justify-content:space-between;align-items:center;margin:12px 0;gap:12px}.categories{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.switch input{flex-shrink:0;accent-color:#a4c880;width:18px;height:18px}.range{display:flex;align-items:center;gap:8px}.range input{width:52px;text-align:center}.range span{flex:1}.extra-entry{display:flex;gap:6px;margin:8px 0}.extra-entry input{flex:1;width:100%}textarea{display:block;width:100%;min-height:78px;resize:vertical}.remove-name{margin-top:7px}.error,.loot-state,.runtime-state{color:#f1b5a4;font-size:11px}.error:empty,.loot-state:empty,.helmet-state:empty,.runtime-state:empty{display:none}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #e7c780;outline-offset:2px}.styles-title{border-top:1px solid #76633d;padding-top:14px;margin-top:16px}.wing-state{color:#aeb6a0;font-size:11px;line-height:1.5}.wing-state:empty{display:none}.tab-title{color:#e7c780;margin:8px 0 12px}
 .stats-option{display:flex;align-items:center;gap:12px}.stats-option>.switch{flex:1}.stats-help{position:relative;border:0;margin:0}.stats-help>summary{list-style:none;cursor:pointer;border:1px solid #76633d;border-radius:50%;width:28px;height:28px;display:grid;place-items:center}.stats-help::details-content{content-visibility:visible}.stats-help>p{display:none;position:absolute;right:0;top:24px;z-index:10;width:260px;max-width:calc(100vw - 60px);padding:12px;background:#15170f;border:1px solid #76633d;border-radius:6px}.stats-help[open]>p,.stats-help:hover>p,.stats-help:focus-within>p{display:block}.stats-help>summary:focus-visible{outline:2px solid #e7c780}
-.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled){appearance:none;position:relative;width:72px;height:28px;border-radius:16px;border:1px solid #76633d;background:#36382e;cursor:pointer;margin:0;padding:0}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled)::before{content:'';position:absolute;width:20px;height:20px;top:3px;left:4px;background:#eee6d1;border-radius:50%}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled)::after{content:'OFF';position:absolute;right:8px;top:6px;font:11px Verdana,sans-serif;color:#eee6d1}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled):checked{background:#3b602c;border-color:#a4c880}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled):checked::before{left:46px}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled):checked::after{content:'ON';left:10px;right:auto}.switch input:disabled{opacity:.5;cursor:wait}
+.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled){appearance:none;position:relative;width:72px;height:28px;border-radius:16px;border:1px solid #76633d;background:#36382e;cursor:pointer;margin:0;padding:0}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled)::before{content:'';position:absolute;width:20px;height:20px;top:3px;left:4px;background:#eee6d1;border-radius:50%}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled)::after{content:'OFF';position:absolute;right:8px;top:6px;font:11px Verdana,sans-serif;color:#eee6d1}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled):checked{background:#3b602c;border-color:#a4c880}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled):checked::before{left:46px}.switch input:is(.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet,.schedule-enabled):checked::after{content:'ON';left:10px;right:auto}.switch input:disabled{opacity:.5;cursor:wait}
 </style><div class="tabs" role="tablist" aria-label="Ajustes de Helper">${[["level","Leveleo"],["obtain","Obtener"],["caza","Caza"],["party","Party"],["appearance","Visualización"],["stats","Estadísticas"]].map(([id,label],i)=>`<button id="${id}-tab" role="tab" aria-selected="${i===0}" aria-controls="${id}-panel" data-tab="${id}" tabindex="${i===0?0:-1}">${label}</button>`).join('')}</div>
 <section id="level-panel" role="tabpanel" aria-labelledby="level-tab"><label class="switch">Reset automático al nivel 400<input type="checkbox" role="switch" class="auto-reset"></label><label class="switch">Mantener Soul Shield<input type="checkbox" role="switch" class="soul-shield"></label><p class="buff-state" role="status"></p><p class="autosave-state help" role="status">Los switches se guardan automáticamente. Coordenadas y niveles se aplican con Guardar.</p><p class="help">Agregá los destinos en orden de nivel. Debajo del primer mínimo, continúa en el mapa inicial.</p><div class="steps"></div><button class="add-step" aria-label="Agregar paso a la ruta">＋ Agregar mapa</button></section>
 <section id="caza-panel" role="tabpanel" aria-labelledby="caza-tab" hidden><h3 class="tab-title">Balrog Colosal</h3><label class="switch">Habilitar Caza del Balrog<input type="checkbox" role="switch" class="balrog-enabled"></label><p class="balrog-save-state help" role="status"></p><p class="help">El switch se guarda automáticamente. Play viaja al destino anunciado y enciende Home al llegar, con tus skills y pociones. Pausa detiene Home y lo libera para uso manual. El leveleo queda pausado.</p><p class="balrog-destination"></p><button class="balrog-play" aria-pressed="false" disabled>▶ Cazar Balrog</button><p class="balrog-state help" role="status"></p></section><section id="goldens-panel" role="tabpanel" aria-labelledby="goldens-tab" hidden><h3 class="tab-title">Ruta de goldens</h3><p class="help">Play controla el farmeo. G habilita la cacería al comenzar el evento. Se usa el primer destino accesible de esta lista.</p><div class="gold-steps"></div><button class="add-gold">＋ Agregar mapa</button><div class="gold-options"><label class="switch">Anticipar viaje 5 segundos<input type="checkbox" data-gold="anticipate"></label><label class="switch">Usar mapas pendientes del evento<input type="checkbox" data-gold="pendingMaps"></label><label class="switch">Recorrer el mapa<input type="checkbox" data-gold="sweep"></label><label class="switch">Guardar spots de goldens<input type="checkbox" data-gold="saveSpots"></label><label class="switch">Visitar spots guardados<input type="checkbox" data-gold="visitSpots"></label><label class="switch">Recoger Kundun<input type="checkbox" data-gold="kundun"></label></div><p class="gold-info help" role="status"></p><p class="help">Cinco minutos por destino o cinco kills propias por mapa. Los cambios de ruta se usan en el próximo evento. Solo los avistamientos se guardan como spots.</p></section><section id="obtain-panel" role="tabpanel" aria-labelledby="obtain-tab" hidden><h3 class="tab-title">Recogida de items</h3><label class="switch">Activar loot del addon<input type="checkbox" role="switch" class="excellent-loot"></label><div class="range"><span>Rango de recogida</span><button class="range-minus" aria-label="Reducir rango">−</button><input type="number" class="loot-range" min="1" max="8" step="1" aria-label="Rango de recogida"><button class="range-plus" aria-label="Aumentar rango">＋</button></div>
 <label class="switch">Recoger todo<input type="checkbox" data-loot="all"></label><div class="categories">
-${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['excellent','Excellent']].map(([key,label])=>`<label class="switch">${label}<input type="checkbox" data-loot="${key}"></label>`).join('')}</div>
-<details class="names-section" open><summary>Items por nombre</summary><label class="switch">Usar lista de nombres<input type="checkbox" data-loot="namesEnabled"></label><div class="extra-entry"><input class="new-name" type="text" maxlength="80" placeholder="Dragon Armor" aria-label="Agregar nombre de item"><button class="add-name">Agregar</button></div><label for="excellent-names">Nombres de sets o items</label><textarea id="excellent-names" class="excellent-names" rows="3" placeholder="Dragon&#10;Legendary" aria-describedby="loot-help" maxlength="4050"></textarea><button class="remove-name" title="Quita la línea donde está el cursor de la lista">Quitar línea seleccionada</button><div class="categories"><label class="switch">Exigir Excellent<input type="checkbox" data-loot="nameExcellent"></label><label class="switch">Exigir Luck<input type="checkbox" data-loot="nameLuck"></label></div></details><p id="loot-help" class="help">Las categorías se suman. Los nombres pueden exigir Excellent y Luck juntos. Zen solo en tu casilla o una adyacente, también con Todo. Para usar este loot, apagá los filtros de recogida de Home; skills y pociones siguen en Home.</p><p class="loot-state" role="status"></p></section>
-<section id="party-panel" role="tabpanel" aria-labelledby="party-tab" class="party-section" hidden><h3>Party</h3><label class="switch">Invitar solo al clan<input type="checkbox" role="switch" class="send-party"></label><label class="switch">Invitar fuera del clan<input type="checkbox" role="switch" class="send-party-outside"></label><p class="help" title="Solo clanes confirmados; los datos desconocidos no autorizan invitaciones">Invita tras 2 s cerca; sujeto al límite entre invitaciones</p><label class="switch">Auto party<input type="checkbox" role="switch" class="auto-party"></label></section><section id="appearance-panel" role="tabpanel" aria-labelledby="appearance-tab" class="appearance-section" hidden><h3>Trackeo</h3><div class="tracking-slot"></div><h3 class="styles-title">Estilos</h3><label class="switch" title="Solo en tu pantalla; conserva el equipo y sus stats">Ocultar casco<input type="checkbox" class="hide-helmet"></label><p class="helmet-state" role="status"></p><label class="switch">Alas<select class="wing-style" title="Cambia solo tus alas equipadas en tu pantalla">${WING_STYLES.map(option=>`<option value="${option.id}">${option.name}</option>`).join('')}</select></label><p class="wing-state" role="status"></p><p class="help">Estilos solo en tu pantalla. Alas se recuerda al guardar; casco dura esta sesión. Conservan tu equipo y sus stats.</p></section><section id="stats-panel" role="tabpanel" aria-labelledby="stats-tab" hidden><div class="stats-option"><label class="switch">Permitir C e inventario juntos<input type="checkbox" role="switch" class="pair-inventory" aria-describedby="pair-help"></label><details class="stats-help"><summary aria-label="Ayuda de C e inventario">?</summary><p id="pair-help" role="tooltip">Se guarda al cambiar. Abrí C y V manualmente, con Play o estadísticas apagados. Al apagar conserva el comportamiento nativo del build y no cierra ventanas abiertas.</p></details></div><p class="pair-save-state help" role="status"></p><p class="pair-runtime-state help" role="status" hidden></p><div class="stats-option"><label class="switch">Estadísticas detalladas<input type="checkbox" role="switch" class="detailed-stats" aria-describedby="stats-help" title="Se guarda al cambiar. Abrí C manualmente para comparar A/B."></label><details class="stats-help"><summary aria-label="Ayuda de estadísticas">?</summary><p id="stats-help" role="tooltip">Se guarda al cambiar. Abrí C manualmente para capturar y comparar A/B. Los valores corresponden al panel nativo; buffs y daño efectivo no están confirmados. Apagar limpia las capturas.</p></details></div><p class="stats-save-state help" role="status"></p></section><p class="error" role="alert"></p><p class="runtime-state" role="status"></p>`;
+${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['excellent','Excellent'],['kundun','Recoger cajas Kundun (+1 a +5)']].map(([key,label])=>`<label class="switch">${label}<input type="checkbox" data-loot="${key}"></label>`).join('')}</div>
+<details class="names-section" open><summary>Items por nombre</summary><label class="switch">Usar lista de nombres<input type="checkbox" data-loot="namesEnabled"></label><div class="extra-entry"><input class="new-name" type="text" maxlength="80" placeholder="Dragon Armor" aria-label="Agregar nombre de item"><button class="add-name">Agregar</button></div><label for="excellent-names">Nombres de sets o items</label><textarea id="excellent-names" class="excellent-names" rows="3" placeholder="Dragon&#10;Legendary" aria-describedby="loot-help" maxlength="4050"></textarea><button class="remove-name" title="Quita la línea donde está el cursor de la lista">Quitar línea seleccionada</button><div class="categories"><label class="switch">Exigir Excellent<input type="checkbox" data-loot="nameExcellent"></label><label class="switch">Exigir Luck<input type="checkbox" data-loot="nameLuck"></label></div></details><p id="loot-help" class="help">Las categorías se suman. Kundun usa el rango desde tu personaje, sin exigir Excellent/Luck ni llegada al spot. Los nombres conservan sus requisitos. Zen solo en tu casilla o una adyacente, también con Todo. Para usar este loot, apagá los filtros de recogida de Home; skills y pociones siguen en Home.</p><p class="loot-state" role="status"></p></section>
+<section id="party-panel" role="tabpanel" aria-labelledby="party-tab" class="party-section" hidden><h3>Party</h3><label class="switch">Invitar solo al clan<input type="checkbox" role="switch" class="send-party"></label><label class="switch">Invitar fuera del clan<input type="checkbox" role="switch" class="send-party-outside"></label><p class="help" title="Solo clanes confirmados; los datos desconocidos no autorizan invitaciones">Invita tras 2 s cerca; sujeto al límite entre invitaciones</p><label class="switch">Auto party<input type="checkbox" role="switch" class="auto-party"></label></section><section id="appearance-panel" role="tabpanel" aria-labelledby="appearance-tab" class="appearance-section" hidden><h3>Trackeo</h3><div class="tracking-slot"></div><h3 class="styles-title">Estilos</h3><label class="switch" title="Solo en tu pantalla; conserva el equipo y sus stats">Ocultar casco<input type="checkbox" role="switch" class="hide-helmet"></label><p class="helmet-save-state help" role="status"></p><p class="helmet-state" role="status"></p><label class="switch">Alas<select class="wing-style" title="Cambia solo tus alas equipadas en tu pantalla">${WING_STYLES.map(option=>`<option value="${option.id}">${option.name}</option>`).join('')}</select></label><p class="wing-state" role="status"></p><p class="help">Estilos solo en tu pantalla. El casco se guarda automáticamente por cuenta; las alas, al Guardar. Conservan tu equipo y sus stats.</p></section><section id="stats-panel" role="tabpanel" aria-labelledby="stats-tab" hidden><div class="stats-option"><label class="switch">Permitir C e inventario juntos<input type="checkbox" role="switch" class="pair-inventory" aria-describedby="pair-help"></label><details class="stats-help"><summary aria-label="Ayuda de C e inventario">?</summary><p id="pair-help" role="tooltip">Se guarda al cambiar. Abrí C y V manualmente, con Play o estadísticas apagados. Al apagar conserva el comportamiento nativo del build y no cierra ventanas abiertas.</p></details></div><p class="pair-save-state help" role="status"></p><p class="pair-runtime-state help" role="status" hidden></p><div class="stats-option"><label class="switch">Estadísticas detalladas<input type="checkbox" role="switch" class="detailed-stats" aria-describedby="stats-help" title="Se guarda al cambiar. Abrí C manualmente para comparar A/B."></label><details class="stats-help"><summary aria-label="Ayuda de estadísticas">?</summary><p id="stats-help" role="tooltip">Se guarda al cambiar. Abrí C manualmente para capturar y comparar A/B. Los valores corresponden al panel nativo; buffs y daño efectivo no están confirmados. Apagar limpia las capturas.</p></details></div><p class="stats-save-state help" role="status"></p></section><p class="error" role="alert"></p><p class="runtime-state" role="status"></p>`;
   $('.config').append(settingsHost);
   let editing=false,configAvailable=false,before=null;
   const setting=selector=>settingsRoot.querySelector(selector);
@@ -1239,21 +1364,21 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
   const uiLevelMap=id=>({...levelMap(id),minLevel:minimumLevel(id,snapshot().charClass)});
   const accountPanel=document.createElement('div');accountPanel.innerHTML='<p class="account-state" role="status"></p><button class="import-legacy" type="button">Importar configuración anterior</button>';
   settingsRoot.insertBefore(accountPanel,settingsRoot.firstElementChild.nextSibling);
-  function stopForAccount(message){party.cancel();const stopHome=balrog.active&&balrog.identity===balrogIdentity(snapshot()),pendingHome=native.pending;balrog.stop(message);balrogEvent.reset();cycle.stop(message);cycle.visit=new MapVisit();gold.cancel(message,false);gold.enabled=false;queuedAction=null;desiredHelper=null;native.pending=null;excellentLoot.clear();clearOwned();clearHuntTargets();soulShield.clear(window.__world,window.__store);huntHadControl=false;hideHelmet.enabled=false;if(stopHome){desiredHelper=false;native.pending=pendingHome;}}
+  function stopForAccount(message){invalidateScheduleSession(message);party.cancel();const stopHome=balrog.active&&balrog.identity===balrogIdentity(snapshot()),pendingHome=native.pending;balrog.stop(message);balrogEvent.reset();cycle.stop(message);cycle.visit=new MapVisit();gold.cancel(message,false);gold.enabled=false;queuedAction=null;desiredHelper=null;native.pending=null;excellentLoot.clear();clearOwned();clearHuntTargets();soulShield.clear(window.__world,window.__store);huntHadControl=false;hideHelmet.enabled=false;if(stopHome){desiredHelper=false;native.pending=pendingHome;}}
   function syncAccount(){
     if(legacyDemo)return;
     const next=accountIdentity(window.__store);
     if(next!==identity){
-      stopForAccount('Pausado: cambió la cuenta');identity=next;preferencesKey=next?accountSettings.key(next):null;profileConflict=false;preferencesInvalid=false;profileRaw=null;
+      stopForAccount(!identity&&next?'Pausado: cuenta conectada; inicio manual':'Pausado: cambió la cuenta');identity=next;preferencesKey=next?accountSettings.key(next):null;profileConflict=false;preferencesInvalid=false;profileRaw=null;
       let value=freshPreferences();try{profileRaw=preferencesKey?localStorage.getItem(preferencesKey):null;if(profileRaw!==null){const saved=JSON.parse(profileRaw);if(validPreferences(saved,'stored'))value={...saved,arena:saved.arena??true,icarus:saved.icarus??true};else preferencesInvalid=true;}}catch{preferencesInvalid=true;}
-      applyPreferences(value,false);wingStyle.style=value.wingStyle??'original';
+      applyPreferences(value,value.hideHelmet===true);wingStyle.style=value.wingStyle??'original';
       if(!editing)fillSettings();
     }
     let raw;try{raw=preferencesKey?localStorage.getItem(preferencesKey):null;}catch{preferencesInvalid=true;}
     if(raw!==profileRaw){
       stopForAccount('Pausado: configuración modificada en otra ventana');
       if(editing)profileConflict=true;
-      else{profileRaw=raw;preferencesInvalid=false;let value=freshPreferences();try{if(raw!==null){value=JSON.parse(raw);if(!validPreferences(value,'stored'))throw Error('Invalid');}}catch{preferencesInvalid=true;value=freshPreferences();}applyPreferences(value,false);wingStyle.style=value.wingStyle??'original';fillSettings();}
+      else{profileRaw=raw;preferencesInvalid=false;let value=freshPreferences();try{if(raw!==null){value=JSON.parse(raw);if(!validPreferences(value,'stored'))throw Error('Invalid');}}catch{preferencesInvalid=true;value=freshPreferences();}applyPreferences(value,value.hideHelmet===true);wingStyle.style=value.wingStyle??'original';fillSettings();}
     }
     setting('.account-state').textContent=identity?'Cuenta: '+JSON.parse(identity)[1]+(profileConflict?' · cambió en otra ventana; cerrá y reabrí Config':''):'Esperando login confirmado para configurar';
     try{setting('.import-legacy').disabled=!identity||profileConflict||preferencesInvalid||localStorage.getItem(legacyKey)===null;}catch{setting('.import-legacy').disabled=true;}
@@ -1271,8 +1396,8 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
   setting('.gold-steps').onchange=e=>{if(e.target.matches('select')){const route=readGoldRoute(),i=Number(e.target.closest('.gold-step').dataset.index);route[i].level=uiLevelMap(route[i].map).minLevel;renderGoldRoute(route);}settingsChanged();};
   setting('.gold-steps').onclick=e=>{const button=e.target.closest('[data-gaction]');if(!button)return;const route=readGoldRoute(),i=Number(button.closest('.gold-step').dataset.index),a=button.dataset.gaction;if(a==='remove'&&route.length>1)route.splice(i,1);if(a==='up'&&i>0)[route[i-1],route[i]]=[route[i],route[i-1]];if(a==='down'&&i<route.length-1)[route[i+1],route[i]]=[route[i],route[i+1]];renderGoldRoute(route);settingsChanged();};
   setting('.add-gold').onclick=()=>{const route=readGoldRoute(),d=HUNT_ROUTE.find(d=>!route.some(p=>p.map===d.id));if(d){route.push({map:d.id,level:uiLevelMap(d.id).minLevel,enabled:true});renderGoldRoute(route);settingsChanged();}};
-  function fillSettings(){fillMapEditor();draftRoutes=JSON.parse(JSON.stringify(routeBank(preferences,snapshot().charClass)));draftRoute=preferences.selectedRoute??0;renderRouteChoice();renderAlternatives();setting('.vary-spots').checked=preferences.varySpots===true;setting('.detailed-stats').checked=preferences.detailedStats===true;setting('.pair-inventory').checked=preferences.pairInventory===true;setting('.balrog-enabled').checked=preferences.balrogEnabled===true;renderGoldRoute(goldPreferences(preferences,snapshot().charClass).route);for(const input of settingsRoot.querySelectorAll('[data-gold]'))input.checked=goldPreferences(preferences,snapshot().charClass)[input.dataset.gold];setting('.soul-shield').checked=preferences.soulShield!==false;renderPath(levelPath(preferences,snapshot().charClass));setting('.auto-reset').checked=preferences.autoReset!==false;setting('.send-party').checked=preferences.sendParty;setting('.send-party-outside').checked=preferences.sendPartyOutside===true;setting('.auto-party').checked=preferences.acceptParty;setting('.hide-helmet').checked=hideHelmet.enabled;setting('.wing-style').value=wingStyle.style;const policy=lootPolicy(preferences);setting('.excellent-loot').checked=policy.enabled;setting('.loot-range').value=policy.range;for(const input of settingsRoot.querySelectorAll('[data-loot]'))input.checked=policy[input.dataset.loot];setting('.excellent-names').value=(preferences.excellentNames??[]).join('\n');setting('.new-name').value='';setting('.error').textContent='';}
-  function readSettings(){captureMapDraft();captureDraftRoute();const path=readPath(),spots=JSON.parse(JSON.stringify(preferences.spots));for(const id of ['lorencia','arena','icarus']){const p=path.find(p=>p.map===id);if(p)spots[id]={x:p.x,y:p.y};}const loot={enabled:setting('.excellent-loot').checked,range:numberValue(setting('.loot-range'))};for(const input of settingsRoot.querySelectorAll('[data-loot]'))loot[input.dataset.loot]=input.checked;return {version:1,...(!legacyMode&&(configAvailable||standaloneMapSave)?{leveling:JSON.parse(JSON.stringify(draftLeveling))}:(!legacyMode&&preferences.leveling?{leveling:JSON.parse(JSON.stringify(preferences.leveling))}:{})),routes:JSON.parse(JSON.stringify(draftRoutes)),selectedRoute:draftRoute,varySpots:setting('.vary-spots').checked,detailedStats:preferences.detailedStats===true,pairInventory:preferences.pairInventory===true,balrogEnabled:preferences.balrogEnabled===true,wingStyle:setting('.wing-style').value,soulShield:setting('.soul-shield').checked,...(preferences.gold?{gold:JSON.parse(JSON.stringify(preferences.gold))}:{}),autoReset:setting('.auto-reset').checked,path,spots,arena:path.some(p=>p.map==='arena'),icarus:path.some(p=>p.map==='icarus'),sendParty:setting('.send-party').checked,sendPartyOutside:setting('.send-party-outside').checked,acceptParty:setting('.auto-party').checked,excellentLoot:loot.enabled,excellentNames:lootNames(setting('.excellent-names').value),loot};}
+  function fillSettings(){fillSchedule();fillMapEditor();draftRoutes=JSON.parse(JSON.stringify(routeBank(preferences,snapshot().charClass)));draftRoute=preferences.selectedRoute??0;renderRouteChoice();renderAlternatives();setting('.vary-spots').checked=preferences.varySpots===true;setting('.detailed-stats').checked=preferences.detailedStats===true;setting('.pair-inventory').checked=preferences.pairInventory===true;setting('.balrog-enabled').checked=preferences.balrogEnabled===true;renderGoldRoute(goldPreferences(preferences,snapshot().charClass).route);for(const input of settingsRoot.querySelectorAll('[data-gold]'))input.checked=goldPreferences(preferences,snapshot().charClass)[input.dataset.gold];setting('.soul-shield').checked=preferences.soulShield!==false;renderPath(levelPath(preferences,snapshot().charClass));setting('.auto-reset').checked=preferences.autoReset!==false;setting('.send-party').checked=preferences.sendParty;setting('.send-party-outside').checked=preferences.sendPartyOutside===true;setting('.auto-party').checked=preferences.acceptParty;setting('.hide-helmet').checked=preferences.hideHelmet===true;setting('.wing-style').value=wingStyle.style;const policy=lootPolicy(preferences);setting('.excellent-loot').checked=policy.enabled;setting('.loot-range').value=policy.range;for(const input of settingsRoot.querySelectorAll('[data-loot]'))input.checked=policy[input.dataset.loot];setting('.excellent-names').value=(preferences.excellentNames??[]).join('\n');setting('.new-name').value='';setting('.error').textContent='';}
+  function readSettings(){captureMapDraft();captureDraftRoute();const path=readPath(),spots=JSON.parse(JSON.stringify(preferences.spots));for(const id of ['lorencia','arena','icarus']){const p=path.find(p=>p.map===id);if(p)spots[id]={x:p.x,y:p.y};}const loot={enabled:setting('.excellent-loot').checked,range:numberValue(setting('.loot-range'))};for(const input of settingsRoot.querySelectorAll('[data-loot]'))loot[input.dataset.loot]=input.checked;return {version:1,...(preferences.schedule?{schedule:{...preferences.schedule}}:{}),...(!legacyMode&&(configAvailable||standaloneMapSave)?{leveling:JSON.parse(JSON.stringify(draftLeveling))}:(!legacyMode&&preferences.leveling?{leveling:JSON.parse(JSON.stringify(preferences.leveling))}:{})),routes:JSON.parse(JSON.stringify(draftRoutes)),selectedRoute:draftRoute,varySpots:setting('.vary-spots').checked,detailedStats:preferences.detailedStats===true,pairInventory:preferences.pairInventory===true,balrogEnabled:preferences.balrogEnabled===true,hideHelmet:preferences.hideHelmet===true,wingStyle:setting('.wing-style').value,soulShield:setting('.soul-shield').checked,...(preferences.gold?{gold:JSON.parse(JSON.stringify(preferences.gold))}:{}),autoReset:setting('.auto-reset').checked,path,spots,arena:path.some(p=>p.map==='arena'),icarus:path.some(p=>p.map==='icarus'),sendParty:setting('.send-party').checked,sendPartyOutside:setting('.send-party-outside').checked,acceptParty:setting('.auto-party').checked,excellentLoot:loot.enabled,excellentNames:lootNames(setting('.excellent-names').value),loot};}
   async function settingsChanged(){if(editing||configAvailable)return;if(settingsProvider.validate())return;try{await settingsProvider.apply();refresh();}catch{fillSettings();setting('.error').textContent='No se pudo guardar la configuración; puede haber cambiado en otra ventana.';}}
   setting('.steps').addEventListener('change',e=>{if(e.target.matches('.step-enabled'))renderPath(readPath());if(e.target.matches('select')){const path=readPath(),i=Number(e.target.closest('.step').dataset.step),m=uiLevelMap(path[i].map);path[i].level=m.minLevel;renderPath(path);}settingsChanged();});
   setting('.steps').addEventListener('click',e=>{const action=e.target.closest('[data-action]');if(!action)return;const path=readPath(),i=Number(action.closest('.step').dataset.step);if(action.dataset.action==='capture'){
@@ -1292,6 +1417,38 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
   setting('.remove-name').onclick=()=>{const list=setting('.excellent-names'),lines=list.value.split('\n'),index=list.value.slice(0,list.selectionStart).split('\n').length-1;lines.splice(index,1);list.value=lines.join('\n');settingsChanged();};
 
   function applyPreferences(value,helmet){if(value.sendParty===false)party.cancel('clan');if(value.sendPartyOutside!==true)party.cancel('outside');if(balrog.active&&value.balrogEnabled!==true)stopBalrog('Caza pausada: función deshabilitada');const changed=JSON.stringify(value.leveling)!==JSON.stringify(preferences.leveling)||JSON.stringify(value.routes)!==JSON.stringify(preferences.routes)||value.selectedRoute!==preferences.selectedRoute||value.varySpots!==preferences.varySpots||JSON.stringify(value.path)!==JSON.stringify(preferences.path)||JSON.stringify(value.spots)!==JSON.stringify(preferences.spots)||value.arena!==preferences.arena||value.icarus!==preferences.icarus;preferences=value;if(!value.detailedStats)statsComparison.clear();cycle.config={...DEFAULTS,...value,path:value.path,autoReset:value.autoReset??true};if(value.autoReset===false&&queuedAction?.text==='/reset'){queuedAction=null;cycle.pending=null;desiredHelper=null;}hideHelmet.enabled=helmet;if(changed){cycle.visit.newVisit();cycle.variation.reset();if(!gold.active&&!balrog.active){queuedAction=null;clearOwned();cycle.stage=null;cycle.settled=false;}}}
+  const schedulePanel=document.createElement('section');schedulePanel.className='schedule-settings';
+  schedulePanel.style.cssText='grid-column:1/-1;border-top:1px solid #76633d;padding-top:12px;min-width:0';
+  schedulePanel.innerHTML='<h3>Programación</h3><label class="switch">Programación diaria<input type="checkbox" role="switch" class="schedule-enabled" aria-label="Programación diaria"></label><div style="display:flex;gap:12px;flex-wrap:wrap"><label>Inicio<input type="time" step="60" class="schedule-start" aria-label="Hora de inicio" style="display:block;max-width:100%"></label><label>Fin<input type="time" step="60" class="schedule-end" aria-label="Hora de fin" style="display:block;max-width:100%"></label></div><p class="help">Hora de Argentina · Todos los días. Habilitar y guardar puede iniciar el leveleo ahora si estás dentro del horario. La Caza tiene su propio control.</p><button type="button" class="schedule-save">Guardar programación</button><p class="schedule-save-state help" role="status"></p><p class="schedule-state help" role="status"></p>';
+  setting('#level-panel').append(schedulePanel);
+  function fillSchedule(){const c=scheduleConfig();setting('.schedule-enabled').checked=c.enabled;setting('.schedule-start').value=c.start;setting('.schedule-end').value=c.end;setting('.schedule-save-state').textContent='';}
+  setting('.schedule-save').onclick=()=>{
+    const value={version:1,enabled:setting('.schedule-enabled').checked,start:setting('.schedule-start').value,end:setting('.schedule-end').value},owner=identity,character=snapshot().name;
+    const feedback=setting('.schedule-save-state');
+    if(!validSchedule(value)){feedback.textContent='No guardado: usá horas válidas y distintas en formato 24 horas.';return;}
+    if(!owner||profileConflict||preferencesInvalid){feedback.textContent='No guardado: cuenta o configuración no disponible.';return;}
+    setting('.schedule-save').disabled=true;feedback.textContent='Guardando programación…';
+    toggleSaveQueue=toggleSaveQueue.then(async()=>{
+      const commit=()=>scheduleLock(owner,()=>{
+        syncAccount();if(identity!==owner||profileConflict||preferencesInvalid||snapshot().name!==character||(!legacyDemo&&accountIdentity(window.__store)!==owner))throw Error('Cambió la sesión o la configuración');
+        const expected=profileRaw,next={...preferences,schedule:value},written=JSON.stringify(next),now=Date.now(),policy=readSchedule(owner),oldWindow=policy.sync(scheduleConfig(),now);
+        if(policy.record.pausedUntil>now&&oldWindow.active)policy.record.pausedUntil=Math.max(policy.record.pausedUntil,oldWindow.end);
+        const w=policy.sync(value,now);
+        if(!value.enabled){policy.record.running=false;policy.record.leaseUntil=0;}
+        writeSchedule(owner,policy);
+        if(legacyDemo){if(localStorage.getItem(preferencesKey)!==expected)throw Error('La configuración cambió en otra ventana');localStorage.setItem(preferencesKey,written);}
+        else accountSettings.write(owner,expected,written,accountIdentity(window.__store));
+        profileRaw=written;applyPreferences(next,next.hideHelmet===true);
+        if(editing&&before?.identity===owner){before.raw=written;before.preferences.schedule={...value};before.written=undefined;}
+        scheduleError='';
+        if(!value.enabled){if(scheduleControl==='programmed'&&cycle.running)pauseLevel('Programación desactivada');scheduleControl=cycle.running?'manual':null;}
+        else if(!w.active&&cycle.running)pauseLevel('Fuera de horario · Hora de Argentina');
+        feedback.textContent='Programación guardada.';
+      });
+      if(legacyDemo)await commit();else await accountSettings.locked(owner,commit);
+      refresh();
+    }).catch(error=>{feedback.textContent='No guardado: '+error.message;}).finally(()=>{setting('.schedule-save').disabled=false;});
+  };
   const settingsProvider={host:settingsHost,order:10,title:'Helper',slots:{'visualization-tracking':setting('.tracking-slot')},
     begin(){syncAccount();profileConflict=false;before={identity,character:snapshot().name,hero:window.__world?.playerEntity,key:preferencesKey,written:undefined,preferences:JSON.parse(JSON.stringify(preferences)),helmet:hideHelmet.enabled,wings:wingStyle.style,raw:null};try{before.raw=preferencesKey?localStorage.getItem(preferencesKey):null;}catch{}editing=true;fillSettings();},
     validate(){syncAccount();if(editing&&before?.locationCaptured&&(before.character!==snapshot().name||before.hero!==window.__world?.playerEntity))return 'Cambió el personaje. Cerrá y reabrí Config antes de guardar la ubicación.';if(!identity||profileConflict||(editing&&before?.identity!==identity))return 'Cambió la cuenta o la configuración. Cerrá y reabrí Config antes de guardar.';const value=readSettings();let error='';if(!validPreferences(value,snapshot().charClass))error='Ruta: usá niveles crecientes entre el mínimo del mapa y 399; coordenadas enteros entre 0 y 255.';if(!error&&legacyMode&&!validRoutes(value,snapshot().charClass))error='Rutas: hasta 8 nombres de 1–40 caracteres. Revisá cada ruta y asociá alternativas al nivel de una etapa existente.';if(legacyMode&&!value.path.some(p=>p.enabled!==false))error='Ruta: activá al menos un paso para guardar.';if(!legacyMode&&!validLeveling(value,snapshot().charClass))error='Mapas: revisá mínimos de nivel y coordenadas enteras entre 0 y 255.';if(!validLootPreferences(value))error='Loot: rango de 1 a 8; hasta 50 nombres de 80 caracteres, uno por línea.';settingsRoot.querySelector('.excellent-names').setAttribute('aria-invalid',String(!validLootPreferences(value)));if(!validGoldPreferences(value,snapshot().charClass))error='Goldens: destinos únicos y niveles enteros entre el mínimo del mapa y 400.';if(preferencesInvalid)error='Configuración guardada inválida: conservada para recuperación.';settingsRoot.querySelector('.error').textContent=error;if(error){settingsRoot.querySelectorAll('[data-map]').forEach(i=>i.setAttribute('aria-invalid',String(!Number.isInteger(Number(i.value))||i.value.trim()===''||Number(i.value)<0||Number(i.value)>255)));return error;}settingsRoot.querySelectorAll('[data-map]').forEach(i=>i.removeAttribute('aria-invalid'));return null;},
@@ -1306,12 +1463,12 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
   setting('.map-save').onclick=async()=>{syncAccount();const s=snapshot();if(mapDraftOwner?.identity!==identity||mapDraftOwner?.character!==s.name||mapDraftOwner?.hero!==window.__world?.playerEntity){setting('.error').textContent='Cambió la sesión. Cancelá mapas y volvé a editar.';return;}standaloneMapSave=true;try{if(settingsProvider.validate())return;await settingsProvider.apply();fillMapEditor();setting('.migration-note').textContent='Mapas guardados. Play se inicia manualmente.';}catch{setting('.error').textContent='No se pudo guardar. Revisá la cuenta y reabrí configuración.';}finally{standaloneMapSave=false;}};
   setting('.map-cancel').onclick=()=>fillMapEditor();
   fillSettings();
-  const AUTO_TOGGLES='.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled';
+  const AUTO_TOGGLES='.auto-reset,.soul-shield,.map-enabled,.spot-enabled,.pair-inventory,.detailed-stats,.balrog-enabled,.hide-helmet';
   let toggleSaveQueue=Promise.resolve();
   function saveToggle(input){
     const owner=identity,character=snapshot().name,hero=window.__world?.playerEntity,transaction=editing?before:null,wanted=input.checked;
-    const field=input.matches('.detailed-stats')?'detailedStats':input.matches('.balrog-enabled')?'balrogEnabled':input.matches('.pair-inventory')?'pairInventory':input.matches('.auto-reset')?'autoReset':input.matches('.soul-shield')?'soulShield':null;
-    const saveState=input.matches('.detailed-stats')?setting('.stats-save-state'):input.matches('.balrog-enabled')?setting('.balrog-save-state'):input.matches('.pair-inventory')?setting('.pair-save-state'):setting('.autosave-state');
+    const field=input.matches('.hide-helmet')?'hideHelmet':input.matches('.detailed-stats')?'detailedStats':input.matches('.balrog-enabled')?'balrogEnabled':input.matches('.pair-inventory')?'pairInventory':input.matches('.auto-reset')?'autoReset':input.matches('.soul-shield')?'soulShield':null;
+    const saveState=input.matches('.hide-helmet')?setting('.helmet-save-state'):input.matches('.detailed-stats')?setting('.stats-save-state'):input.matches('.balrog-enabled')?setting('.balrog-save-state'):input.matches('.pair-inventory')?setting('.pair-save-state'):setting('.autosave-state');
     const map=selectedLevelMap,index=input.matches('.spot-enabled')?Number(input.closest('.map-spot').dataset.spot):null;
     const draftSpot=index===null?null:{...currentMapDraft().spots[index]};
     for(const control of settingsRoot.querySelectorAll(AUTO_TOGGLES))control.disabled=true;
@@ -1337,22 +1494,22 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
         if(identity!==owner||(!legacyDemo&&accountIdentity(window.__store)!==owner)||character!==snapshot().name||hero!==window.__world?.playerEntity)throw Error('Cambió la sesión antes de guardar.');
         if(legacyDemo){if(localStorage.getItem(preferencesKey)!==expected)throw Error('La configuración cambió en otra ventana.');localStorage.setItem(preferencesKey,written);}
         else accountSettings.write(owner,expected,written,accountIdentity(window.__store));
-        profileRaw=written;applyPreferences(value,hideHelmet.enabled);
+        profileRaw=written;applyPreferences(value,value.hideHelmet===true);
         const baseline=editing?before:transaction;
-        if(baseline?.identity===owner){baseline.raw=written;baseline.preferences=JSON.parse(JSON.stringify(value));baseline.written=undefined;}
+        if(baseline?.identity===owner){baseline.raw=written;baseline.preferences=JSON.parse(JSON.stringify(value));baseline.helmet=value.hideHelmet===true;baseline.written=undefined;}
         if(!field&&draftLeveling){const m=draftLeveling.maps.find(m=>m.map===map);if(index===null)m.enabled=wanted;else if(m.spots[index])m.spots[index].enabled=wanted;}
         if(input.isConnected&&(field||selectedLevelMap===map))input.checked=wanted;
-        saveState.textContent=['pairInventory','detailedStats'].includes(field)?'Switch guardado automáticamente.':'Switch guardado automáticamente. Coordenadas y niveles pendientes requieren Guardar.';
+        saveState.textContent=['pairInventory','detailedStats','hideHelmet'].includes(field)?'Switch guardado automáticamente.':'Switch guardado automáticamente. Coordenadas y niveles pendientes requieren Guardar.';
       };
       if(legacyDemo)commit();else await accountSettings.locked(owner,commit);
     }).catch(error=>{
-      if(owner===identity){const baseline=field?(['pairInventory','detailedStats','balrogEnabled'].includes(field)?preferences[field]===true:preferences[field]!==false):index===null?migrateLeveling(preferences,snapshot().charClass).leveling.maps.find(m=>m.map===map)?.enabled:!wanted;
+      if(owner===identity){const baseline=field?(['pairInventory','detailedStats','balrogEnabled','hideHelmet'].includes(field)?preferences[field]===true:preferences[field]!==false):index===null?migrateLeveling(preferences,snapshot().charClass).leveling.maps.find(m=>m.map===map)?.enabled:!wanted;
         if(input.isConnected)input.checked=!!baseline;
         if(!field&&draftLeveling){const m=draftLeveling.maps.find(m=>m.map===map);if(index===null)m.enabled=!!baseline;else if(m.spots[index])m.spots[index].enabled=!!baseline;renderMapPlan();}}
       saveState.textContent='No guardado: '+error.message;
     }).finally(()=>{for(const control of settingsRoot.querySelectorAll(AUTO_TOGGLES))control.disabled=false;});
   }
-  settingsRoot.addEventListener('change',event=>{if(event.target.matches(AUTO_TOGGLES)){saveToggle(event.target);return;}if(!event.target.closest('.steps,.map-leveling')&&!event.target.matches('.new-name,.map-select'))settingsChanged();});
+  settingsRoot.addEventListener('change',event=>{if(event.target.closest('.schedule-settings'))return;if(event.target.matches(AUTO_TOGGLES)){saveToggle(event.target);return;}if(!event.target.closest('.steps,.map-leveling')&&!event.target.matches('.new-name,.map-select'))settingsChanged();});
   window.addEventListener('mu-hub:register',event=>{if(event.detail?.capabilities?.configurationWindow){configAvailable=true;mapActions.hidden=true;$('.config').hidden=true;}});
 
   function refresh(){
@@ -1367,7 +1524,7 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
     if(!editing)settingsRoot.querySelector('.hide-helmet').checked=hideHelmet.enabled;
     settingsRoot.querySelector('.helmet-state').textContent=/^(No se pudo|Apariencia no disponible|Suspendido|Esperando modelo)/.test(hideHelmet.message)?hideHelmet.message:'';settingsRoot.querySelector('.runtime-state').textContent=/pausado|no pudo|incompatible/i.test(cycle.message)?cycle.message:'';
     try{
-      bindHunterBus();const s=snapshot(),now=Date.now(),data=radarData();updateBalrogEvent(s,now);
+      bindHunterBus();const s=snapshot(),now=Date.now(),data=radarData();updateBalrogEvent(s,now);evaluateSchedule(s,now);setting('.schedule-state').textContent=scheduleError||scheduleMessage;
       if(balrog.active){
         const event=balrogEvent.get(now);
         if(preferences.balrogEnabled!==true||profileConflict||preferencesInvalid)stopBalrog('Caza pausada: configuración no disponible');
@@ -1395,13 +1552,19 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
         if(!queuedAction||queuedAction.hunter||queuedAction.kind==='huntAttack'||queuedAction.kind==='huntLoot'||s.dead||!s.ready||data.event?.phase==='ended')enact(gold.step(s,{...data,world:window.__world,lootCount},now));
       }
       if(huntHadControl&&!gold.active)returnToLevel(now);
-      if(!buffBusy&&!gold.active&&(!queuedAction || s.dead || !s.ready)){
+      // Give the existing picker one turn before returning to the leveling spot.
+      // Warp/reset/route transitions keep priority; only dedicated Kundun holds movement.
+      const earlyLoot=preferences.loot?.kundun===true&&!!cycle.stage&&!buffBusy&&!gold.active&&!canStart&&!queuedAction&&!cycle.pending&&!transitionDue;
+      if(earlyLoot)excellentLoot.step(cycle,s,window.__world,window.__store,preferences,now,false,!!window.__LEVEL_HELPER_DEMO__);
+      const kundunBusy=earlyLoot&&excellentLoot.pending?.kundun===true;
+      if(kundunBusy)cycle.progressAt=now;
+      if(!kundunBusy&&!buffBusy&&!gold.active&&(!queuedAction || s.dead || !s.ready)){
         // Home keeps control while leveling, including idle enemy search.
         enact(cycle.step(s,now,window.__world));
       }
-      if(s.ready && !s.loading&&!buffBusy)serviceHelper(now);
+      if(s.ready && !s.loading&&!buffBusy&&!kundunBusy)serviceHelper(now);
       else if(!s.ready){excellentLoot.clear();queuedAction=null;desiredHelper=null;native.pending=null;clearOwned();}
-      excellentLoot.step(cycle,s,window.__world,window.__store,preferences,now,gold.active||canStart||!!queuedAction,!!window.__LEVEL_HELPER_DEMO__);
+      if(!earlyLoot)excellentLoot.step(cycle,s,window.__world,window.__store,preferences,now,gold.active||canStart||!!queuedAction||!!cycle.pending||transitionDue,!!window.__LEVEL_HELPER_DEMO__);
       if(identity&&!profileConflict&&!preferencesInvalid&&(legacyDemo||cycle.running))nativeParty.sync(window.__social,s,window.__store?.gsSocket,now,preferences.acceptParty);
       if(nativeParty.message)settingsRoot.querySelector('.runtime-state').textContent=nativeParty.message;
       if(identity&&!profileConflict&&!preferencesInvalid&&cycle.running)party.step(window.__world,window.__social,s,now,cycle.config);else party.cancel();
@@ -1429,10 +1592,10 @@ ${[['jewels','Jewels y gems'],['zen','Zen sin moverse'],['ancient','Ancient'],['
   $('.settings').onclick=()=>{if(configAvailable){window.dispatchEvent(new CustomEvent('mu-config:open'));return;}const panel=$('.config');panel.hidden=!panel.hidden;$('.settings').setAttribute('aria-expanded',String(!panel.hidden));$('.settings').setAttribute('aria-label',panel.hidden?'Ver configuración':'Ocultar configuración');render(snapshot());};
   $('.party').onclick=()=>{if($('.config').hidden)$('.settings').click();};
   setting('.balrog-play').onclick=toggleBalrog;
-  $('.toggle').onclick=()=>{syncAccount();if(balrog.active)stopBalrog('Caza pausada: se inició el leveleo');if(!identity||profileConflict||preferencesInvalid)return;if(cycle.running){party.cancel();const action=cycle.stop();gold.cancel('Golden hunt detenido por Play',false);soulShield.clear(window.__world,window.__store);enact(action);}else cycle.start(snapshot(),Date.now());refresh();};
+  $('.toggle').onclick=manualLevelToggle;
   for(const name of ['pointerdown','pointerup','click','dblclick','keydown','keyup','wheel','contextmenu'])host.addEventListener(name,e=>e.stopPropagation());
   const hubStyle=document.createElement('style');hubStyle.textContent=':host([data-hub=true]){position:static!important;display:block;max-width:none!important}:host([data-hub=true]) .controls{display:none}:host([data-hub=true]) .config{width:100%;max-width:none;max-height:none;margin:0;border:0;border-top:1px solid #76633d;border-radius:0}';root.append(hubStyle);
- const hubModule={id:'helper',host,getState:()=>({statsVisible:!statsHost.hidden,detailedStats:preferences.detailedStats===true&&!profileConflict&&!preferencesInvalid,running:cycle.running,ready:snapshot().ready,message:balrog.active?balrog.message:cycle.message+(cycle.running&&soulShield.message&&!soulShield.pending?' · '+soulShield.message:''),partyCount:window.__social?.partyMembers?.length||1,balrog:balrogState(),gold:{enabled:gold.enabled,active:gold.active,message:gold.message,kills:gold.kills?.[snapshot().map]??0,boxes:gold.boxes,ready:false}}),capabilities:{settings:settingsProvider},actions:{balrog:toggleBalrog,gold:()=>({available:false,message:'Golden hunt retirado'}),toggle:()=>$('.toggle').click(),settings:open=>{const panel=$('.config');panel.hidden=!open;$('.settings').setAttribute('aria-expanded',String(open));},attach:()=>{host.dataset.hub='true';host.style.setProperty('position','static','important');}}};
+ const hubModule={id:'helper',host,getState:()=>({schedule:scheduleStatus(),statsVisible:!statsHost.hidden,detailedStats:preferences.detailedStats===true&&!profileConflict&&!preferencesInvalid,running:cycle.running,ready:snapshot().ready,message:balrog.active?balrog.message:cycle.message+(cycle.running&&soulShield.message&&!soulShield.pending?' · '+soulShield.message:''),partyCount:window.__social?.partyMembers?.length||1,balrog:balrogState(),gold:{enabled:gold.enabled,active:gold.active,message:gold.message,kills:gold.kills?.[snapshot().map]??0,boxes:gold.boxes,ready:false}}),capabilities:{settings:settingsProvider},actions:{balrog:toggleBalrog,gold:()=>({available:false,message:'Golden hunt retirado'}),toggle:()=>$('.toggle').click(),settings:open=>{const panel=$('.config');panel.hidden=!open;$('.settings').setAttribute('aria-expanded',String(open));},attach:()=>{host.dataset.hub='true';host.style.setProperty('position','static','important');}}};
  function registerHub(){window.dispatchEvent(new CustomEvent('mu-hub:register',{detail:hubModule}));}
  window.addEventListener('mu-hub:discover',registerHub);registerHub();window.dispatchEvent(new CustomEvent('mu-hub:discover'));
   const timer=setInterval(refresh,500);window.addEventListener('pagehide',()=>{clearInterval(timer);window.removeEventListener('keydown',quickKey,true);window.removeEventListener('resize',resizeQuick);quickHost.remove();soulShield.clear(window.__world,window.__store);excellentLoot.clear();hideHelmet.detach();wingStyle.detach();window.removeEventListener('mu-radar:hunting',reactToRadar);clearOwned();clearHuntTargets();if(hunterBus)for(const [name,fn] of Object.entries(hunterListeners))hunterBus.off(name,fn);if(window.__store?.muHelper?.active && desiredHelper!==null)window.__store.toggleMuHelper();},{once:true});refresh();

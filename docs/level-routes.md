@@ -16,6 +16,8 @@ Al comenzar una etapa elige **un solo spot habilitado** y permanece ahí hasta a
 
 En visitas posteriores al mapa usa el siguiente spot, evitando repetir el anterior si hay más de una coordenada distinta. Pausa/reanudación, muerte y regreso de Golden hunt conservan la elección. Reset confirmado inicia una visita nueva. Mapas con igual nivel forman una etapa: elige uno de forma estable y avanza al siguiente en otra visita, sin oscilar entre ellos durante el leveleo. El historial de turnos dura lo que vive el documento; recargarlo reinicia los turnos.
 
+Desde Helper 1.29.4, al iniciar o reanudar en un mundo compartido por varias variantes (por ejemplo, Devias y Devias 2–4), no vuelve a transportarse si ya está a dos casillas o menos del spot elegido. Se usa la misma distancia de llegada del ciclo; compartir el ID del mundo por sí solo no identifica una variante. Más lejos conserva el viaje explícito y espera su confirmación antes de caminar al spot. Un cambio de etapa a otra variante del mismo mundo también conserva el viaje, incluso cerca del nuevo spot. Llegar a las coordenadas durante un viaje pendiente no reemplaza su confirmación. La zona segura sigue impidiendo activar Home.
+
 Por debajo del primer nivel configurado permanece en el mapa inicial; puede usar un spot del mapa actual si ese destino se identifica sin ambigüedad. No viaja antes del mínimo de clase. Un viaje rechazado o sin confirmación, un spot no transitable o sin camino completo, o 45 segundos sin progreso pausan con motivo; no rota silenciosamente a otro spot. El loot usa el centro del spot elegido.
 
 ## Configuración anterior y datos

@@ -1,6 +1,6 @@
 import {Renderer} from './renderer.js';
 const $=s=>document.querySelector(s),titles={config:'Configuración',radar:'Radar e historial',analytics:'EXP por spot'};
-const sectionDescriptions={caza:'Viaje al Balrog Colosal y Home al llegar.',level:'Mapas y spots de tu progresión.',obtain:'Categorías, nombres y condiciones de recogida.',party:'Invitaciones y aceptación automática.',appearance:'Trackeo y estilos en tu pantalla.',stats:''};
+const sectionDescriptions={caza:'Farmeo a 400 con Play/F10 y viaje al Balrog.',level:'Mapas y spots de tu progresión.',obtain:'Categorías, nombres y condiciones de recogida.',party:'Invitaciones y aceptación automática.',appearance:'Trackeo y estilos en tu pantalla.',stats:''};
 let tabId=null,generation=null,lease=null,view='config',revision=0,connected=false,serial=0,queue=Promise.resolve(),polling=false;
 const renderer=new Renderer($('#mirror'),event=>enqueue(async()=>{await request({op:'event',view,...event});renderer.acknowledge(event);await read();}));
 function error(text=''){$('#error').hidden=!text;$('#error').textContent=text;}
@@ -21,8 +21,9 @@ async function request(body){
 }
 function paint(s){
   const who=s.identity,h=s.helper;
-  $('#connection').textContent=who.ready?'Conectado':'Esperando personaje';$('#connection').dataset.connected='true';
-  $('#account').textContent=who.account?`${who.world} / ${who.account}`:'Esperando login';$('#character').textContent=who.character||'—';$('#tab-label').textContent='#'+tabId;
+  const incompatible=['unsupported','error'].includes(s.client?.state);
+  $('#connection').textContent=incompatible?'Cliente no compatible':who.ready?'Conectado':'Esperando personaje';$('#connection').dataset.connected=String(!incompatible);
+  $('#account').textContent=who.account?`${who.world} / ${who.account}`:s.client?.message||'Esperando login';$('#character').textContent=who.character||'—';$('#tab-label').textContent='#'+tabId;
   $('#play').textContent=h?.running?'Ⅱ Pausar Play':'▶ Iniciar Play';$('#play').setAttribute('aria-pressed',String(!!h?.running));$('#play').disabled=!connected||!h||(!h.running&&!h.ready);
   $('#overlay').checked=s.overlay;$('#engine-state').textContent=h?.message||'Esperando motores';
 }

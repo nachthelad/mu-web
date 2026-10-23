@@ -1,3 +1,32 @@
+// Compatibility only: reuse the client's cached module, never boot another game.
+(()=>{
+  'use strict';
+  const marker=Symbol.for('mu.addons.client-compat.v1');if(window[marker])return;
+  const state=window[marker]={state:'loading',message:'Esperando cliente'};
+  const keys=['__store','__world','__social','__eventBus'];
+  const legacy=()=>keys.every(key=>window[key]);
+  async function initialize(){
+    if(legacy()){state.state='legacy';state.message='';return;}
+    const builds=[{entry:'/assets/index-C5JIMxmo.js',module:'/assets/layout-A1P3A0u1.js'},{entry:'/assets/index-D-gOSya0.js',module:'/assets/layout-DCITLqBq.js'},{entry:'/assets/index-Do3IjarP.js',module:'/assets/layout-CoOAKkh-.js'},{entry:'/assets/index-URnTVW_1.js',module:'/assets/layout-DQbdTT-G.js'}];
+    const build=builds.find(build=>[...document.querySelectorAll('script[type="module"][src]')].some(script=>{
+      const url=new URL(script.src,location.href);return url.origin===location.origin&&url.pathname===build.entry&&!url.search;
+    }));
+    if(!build){state.state='unsupported';state.message='Cliente no compatible. Hace falta actualizar el addon.';return;}
+    try{
+      const native=await import(new URL(build.module,location.origin).href);
+      // Another initializer/client may have supplied the original globals meanwhile.
+      if(legacy()){state.state='legacy';state.message='';return;}
+      const store=native.n,social=native.V,bus=native.aw;
+      if(!store||typeof store.uiState!=='number'||!store.playerData||!('world' in store)||!('gsSocket' in store)||typeof social?.sendChat!=='function'||typeof bus?.on!=='function'||typeof bus?.off!=='function'||keys.some(key=>key in window))throw Error('Interfaces del cliente no compatibles');
+      const values={__store:()=>store,__world:()=>store.world,__social:()=>social,__eventBus:()=>bus};
+      Object.defineProperties(window,Object.fromEntries(keys.map(key=>[key,{configurable:true,get:values[key]}])));
+      state.state='ready';state.message='';
+    }catch{
+      state.state='error';state.message='No se pudo conectar con este cliente. Recargá el juego; si persiste, actualizá el addon.';
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
+})();
 // Presentation adapter only. Original modules retain all engines and transactions.
 (()=>{
   'use strict';
@@ -25,9 +54,9 @@
     return {generation:documentId+':'+epoch,identity:who};
   }
   function check(r){const s=session();if(!lease||r.lease!==lease||r.generation!==s.generation)throw Error('Cambió la sesión. Reconectá y revisá el borrador.');return s;}
-  function status(){const s=session();return {...s,overlay,statsVisible:modules.get('helper')?.getState()?.statsVisible===true,helper:modules.get('helper')?.getState(),analytics:modules.get('analytics')?.getState(),radar:modules.get('radar')?.getState()};}
+  function status(){const s=session(),client=window[Symbol.for('mu.addons.client-compat.v1')];return {...s,client:{state:client.state,message:client.message},overlay,statsVisible:modules.get('helper')?.getState()?.statsVisible===true,helper:modules.get('helper')?.getState(),analytics:modules.get('analytics')?.getState(),radar:modules.get('radar')?.getState()};}
   const allowedTags=new Set('div span p section aside header footer h1 h2 h3 h4 button input textarea select option optgroup label details summary fieldset legend strong b i em small br hr ul ol li table thead tbody tr th td progress canvas svg path circle rect line polyline polygon g title style'.split(' '));
-  const attrOK=name=>/^(?:id|class|style|role|title|type|name|value|min|max|step|rows|cols|placeholder|for|tabindex|disabled|hidden|checked|selected|open|width|height|viewBox|d|fill|stroke|stroke-width|cx|cy|r|x|y|x1|x2|y1|y2|points|aria-[\w-]+|data-[\w-]+)$/.test(name);
+  const attrOK=name=>/^(?:id|class|style|role|title|type|name|value|min|max|step|rows|cols|size|placeholder|for|tabindex|disabled|hidden|checked|selected|open|width|height|viewBox|d|fill|stroke|stroke-width|cx|cy|r|x|y|x1|x2|y1|y2|points|aria-[\w-]+|data-[\w-]+)$/.test(name);
   function serialize(view,revision){
     const host=modules.get(view)?.host;if(!host)throw Error('Módulo todavía no disponible');
     const nodes={},live=new Map();let count=0;
@@ -104,6 +133,7 @@
       }
       else if(['input','change'].includes(r.event)&&t.matches('input:not([type=checkbox]):not([type=radio]),textarea,select')){
         if(typeof r.value!=='string'||r.value.length>12000)throw Error('Valor inválido');t.value=r.value;selection();t.dispatchEvent(new Event(r.event,{bubbles:true,composed:true}));
+       }else if(r.event==='keydown'&&['ArrowUp','ArrowDown','Enter','Escape'].includes(r.key)&&t.matches('input[data-map-search]')){selection();t.dispatchEvent(new KeyboardEvent('keydown',{key:r.key,bubbles:true,composed:true}));
       }else if(r.event==='keydown'&&r.key==='Enter'&&t.matches('input.new-name')){selection();t.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,composed:true}));}
       else throw Error('Evento no permitido');
       return {ok:true,status:status()};

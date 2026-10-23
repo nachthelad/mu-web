@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-22",
+  "entry": "/assets/index-D-gOSya0.js",
+  "module": "/assets/layout-DCITLqBq.js",
+  "exports": {
+    "store": "f as n",
+    "social": "K as V",
+    "bus": "x as aw",
+    "calculate": "Uxt as b1",
+    "catalog": "No as bU",
+    "slots": "re as aL",
+    "itemStats": "Gg as nF",
+    "tooltip": "MNt as nH",
+    "name": "mk as fd"
+  },
+  "map": {
+    "Aida": 33
+  },
+  "classes": {
+    "DarkLord": 16,
+    "LordEmperor": 17
+  },
+  "hashes": {
+    "root.html": "ae23ffdd04ed24cf2a323f30bcf5a928af7ad305bbe5ef94f1c62dbd06a85d78",
+    "index.js": "e8ff3742dcb70f36f3575b448cb61c3fbead02b53634f5e2bd09fa8a1c95dbea",
+    "layout.js": "672f36d0955d66b4f738b8c66b1d83b7e21a15b45beef011d26177128d9a4081",
+    "boot.js": "3936668feb121f573a8825b43be21b53543fbf2a3683058df606f8033c285949",
+    "ui.js": "9d248c70a15417daeaf3383fd7b99d8e0a78c74ad58001d14d52ca9d8d4144a0"
+  },
+  "limitations": "Static public audit and extracted fixtures only; no real account or server commands."
+}

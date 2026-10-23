@@ -1,0 +1,20 @@
+{
+  "version": "1.0.43",
+  "sha256": "323fefa13531c0191d6de3283d8b783c9f4e0521f870ca1a5e3719d5c829b123",
+  "files": {
+    "analytics.user.js": "ad8c987757dd65570593d7b578af23864ffb941f271f8e658525b69d88dd6fd8",
+    "config.user.js": "e1628f48f897d02e9e43fe22411dd9c2a566828c70bbc9e4e753db358bbaf3f8",
+    "content-bridge.js": "8119d13af220e395cf661695fba7365a80d0bbfc736b758b88400e007e9d1991",
+    "golden-radar.user.js": "0486c0f1bd1a0db60430ead8a751d56923184ed8705cbf64fab190700efa775d",
+    "hub.user.js": "e774f7edcbfecd5253abb07f3b29969301cab1e0f0c8deb2ed160f2ecb23fa06",
+    "interface.user.js": "983fb4ea09623e95a0afe02e6799e766661e8ec7d151599e2b741525cc085dea",
+    "level-helper.user.js": "f2f869f59cf03bdffeb148a4090a591bc71abb7878216068ffc0b87a95f3bb39",
+    "manifest.json": "8e487f965a69986becfc057909352b9f49e47b5e78b53d1c5ef24ea98b7ff6cb",
+    "page-bridge.js": "6f1aa8ffc89c6f64fd440bd794a64a1aeccd0da35d0e768ab9949622b377f507",
+    "panel.css": "8d37e64f7d75c9b8a3868a4490c6d5130a13a2108a019bbb23b8e1b8e8bd7df5",
+    "panel.html": "0b92bc17453849f0245c8a95a98483515996a3addbd0020a6a18eecf98404887",
+    "panel.js": "043e6d9bc4dedaee66d6d4dfed0ddc1ec5b70edfb4b2f02382723450920a216b",
+    "renderer.js": "e11b5dfabfe00f574f9442c1ff4fec8782d2372dfdf79a196e70bed60497be01",
+    "worker.js": "cdf7755735219a6ef71c8b36b5c64302b108e019e433a0f8ce0ada67ba299328"
+  }
+}

@@ -1,4 +1,12 @@
 const path=require('node:path'),{execFileSync}=require('node:child_process');
+for(const test of ['character-oct21-ui.cjs','extension-client-ui.cjs'])execFileSync(process.execPath,[path.resolve(__dirname,'../tests',test),'--kanturu'],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+for(const test of ['character-oct21-ui.cjs','extension-client-ui.cjs'])execFileSync(process.execPath,[path.resolve(__dirname,'../tests',test),'--oct22'],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-oct21-ui.cjs'),'--recheck'],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/extension-client-ui.cjs'),'--recheck'],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-oct21-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/extension-client-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/kundun-loot-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
+execFileSync(process.execPath,[path.resolve(__dirname,'../tests/schedule-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
 execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-position-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
 execFileSync(process.execPath,[path.resolve(__dirname,'../tests/stats-autosave-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});
 execFileSync(process.execPath,[path.resolve(__dirname,'../tests/character-build-ui.cjs')],{cwd:path.resolve(__dirname,'..'),stdio:'inherit'});

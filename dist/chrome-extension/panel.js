@@ -21,18 +21,19 @@ async function request(body){
 }
 function paint(s){
   const who=s.identity,h=s.helper;
-  $('#connection').textContent=who.ready?'Conectado':'Esperando personaje';$('#connection').dataset.connected='true';
-  $('#account').textContent=who.account?`${who.world} / ${who.account}`:'Esperando login';$('#character').textContent=who.character||'—';$('#tab-label').textContent='#'+tabId;
+  const incompatible=['unsupported','error'].includes(s.client?.state);
+  $('#connection').textContent=incompatible?'Cliente no compatible':who.ready?'Conectado':'Esperando personaje';$('#connection').dataset.connected=String(!incompatible);
+  $('#account').textContent=who.account?`${who.world} / ${who.account}`:s.client?.message||'Esperando login';$('#character').textContent=who.character||'—';$('#tab-label').textContent='#'+tabId;
   $('#play').textContent=h?.running?'Ⅱ Pausar Play':'▶ Iniciar Play';$('#play').setAttribute('aria-pressed',String(!!h?.running));$('#play').disabled=!connected||!h||(!h.running&&!h.ready);
   $('#overlay').checked=s.overlay;$('#engine-state').textContent=h?.message||'Esperando motores';
 }
 async function read(){
   const result=await request({op:'read',view,revision});renderer.apply(result.view);revision=result.view.revision;
-  if(view==='config'&&renderer.tabs().some(t=>t.selected&&t.id==='stats')&&!renderer.configurationOpen()){
+  if(view==='config'&&!renderer.configurationOpen()){
     await request({op:'open',view});const reopened=await request({op:'read',view,revision});renderer.apply(reopened.view);revision=reopened.view.revision;
   }
   $('#mirror').hidden=false;$('#empty').hidden=true;
-  $('#open-view').hidden=view==='config'&&(renderer.configurationOpen()||$('#config-section').value==='stats');
+  $('#open-view').hidden=view==='config';
   syncSections();
 }
 function syncSections(){

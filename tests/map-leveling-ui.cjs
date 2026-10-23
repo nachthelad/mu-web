@@ -3,13 +3,13 @@ const {chromium}=require('../scripts/browser-runtime.cjs'),assert=require('node:
  const page=await browser.newPage({viewport:{width:480,height:850}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install();
  const load=async()=>{await page.goto(pathToFileURL(path.resolve('demos/helper/preview.html')).href);await page.addScriptTag({path:path.resolve('src/config/config.user.js')});};await load();
  const cfg=page.locator('#mu-config'),key='mu.level-helper.demo-settings.v1',open=()=>page.evaluate(()=>window.dispatchEvent(new CustomEvent('mu-config:open'))),raw=()=>page.evaluate(k=>localStorage.getItem(k),key);
- await open();assert.equal(await cfg.locator('.map-select option').count(),26);assert.equal(await cfg.locator('.legacy-editor').isVisible(),false);assert.equal(await raw(),null);await cfg.locator('.cancel').click();assert.equal(await raw(),null);
+ await open();assert.equal(await cfg.locator('.map-select option').count(),32);assert.equal(await cfg.locator('.legacy-editor').isVisible(),false);assert.equal(await raw(),null);await cfg.locator('.cancel').click();assert.equal(await raw(),null);
  await open();await cfg.locator('.map-select').selectOption('noria');await cfg.locator('.map-enabled').check();await cfg.locator('.autosave-state').filter({hasText:'Switch guardado'}).waitFor();const toggleBaseline=await raw();await cfg.locator('.map-add').click();await cfg.locator('.save').click();assert.match((await cfg.locator('.error').allTextContents()).join(' '),/coordenadas/);assert.equal(await raw(),toggleBaseline);
  const row=cfg.locator('.map-spot').first();await row.locator('.spot-x').fill('30');await row.locator('.spot-y').fill('40');await row.locator('[data-spot-action=capture]').click();assert.match(await row.locator('.spot-capture').textContent(),/otro mapa/);assert.equal(await row.locator('.spot-x').inputValue(),'30');
  await page.evaluate(()=>{__world.mapIndex=3;__world.playerEntity.transform.pos={x:71.8,z:92.4};});await row.locator('[data-spot-action=capture]').click();assert.equal(await row.locator('.spot-x').inputValue(),'71');assert.equal(await row.locator('.spot-y').inputValue(),'92');await row.locator('[data-spot-action=duplicate]').click();assert.equal(await cfg.locator('.map-spot').count(),2);await cfg.locator('.map-spot').last().locator('.spot-x').fill('75');
  await cfg.locator('.map-select').selectOption('atlans3');await cfg.locator('.map-add').click();await cfg.locator('.spot-x').fill('10');await cfg.locator('.spot-y').fill('20');await page.evaluate(()=>{__world.mapIndex=7;});await cfg.locator('[data-spot-action=capture]').click();assert.ok(await cfg.locator('.spot-capture').textContent());assert.equal(await cfg.locator('.spot-x').inputValue(),'10');
  await cfg.locator('.map-select').selectOption('arena2');await cfg.locator('.map-enabled').check();assert.match(await cfg.locator('.map-summary').textContent(),/Incompleto/);
- await cfg.locator('.map-select').selectOption('noria');assert.equal(await cfg.locator('.map-spot').count(),2);await cfg.locator('.save').click();const saved=JSON.parse(await raw());assert.equal(saved.leveling.maps.length,26);assert.equal(saved.leveling.maps.find(m=>m.map==='noria').spots[1].x,75);assert.ok(saved.path);assert.equal(await page.locator('#mu-level-helper .toggle').getAttribute('aria-pressed'),'false');
+ await cfg.locator('.map-select').selectOption('noria');assert.equal(await cfg.locator('.map-spot').count(),2);await cfg.locator('.save').click();const saved=JSON.parse(await raw());assert.equal(saved.leveling.maps.length,32);assert.equal(saved.leveling.maps.find(m=>m.map==='noria').spots[1].x,75);assert.ok(saved.path);assert.equal(await page.locator('#mu-level-helper .toggle').getAttribute('aria-pressed'),'false');
  await page.reload();await page.addScriptTag({path:path.resolve('src/config/config.user.js')});await open();await cfg.locator('.map-select').selectOption('noria');assert.equal(await cfg.locator('.map-spot').count(),2);await cfg.locator('.map-spot').last().locator('[data-spot-action=remove]').click();await cfg.locator('.cancel').click();assert.deepEqual(JSON.parse(await raw()),saved);await open();assert.equal(await cfg.locator('.map-spot').count(),2);await cfg.locator('.map-select').scrollIntoViewIfNeeded();await cfg.locator('.window').screenshot({path:'artifacts/map-leveling/editor.png'});await cfg.locator('.cancel').click();assert.deepEqual(errors,[]);
  const standalone=await browser.newPage();await standalone.goto(pathToFileURL(path.resolve('demos/helper/preview.html')).href);const h=standalone.locator('#mu-level-helper');await h.locator('.settings').click();await h.getByRole('tab',{name:'Leveleo',exact:true}).click();await h.locator('.spot-x').first().fill('88');await h.locator('.spot-y').first().focus();assert.equal(await standalone.evaluate(k=>localStorage.getItem(k),key),null);await h.locator('.map-cancel').click();assert.equal(await h.locator('.spot-x').first().inputValue(),'47');await h.locator('.spot-x').first().fill('88');await h.locator('.map-save').click();assert.equal(await standalone.evaluate(k=>JSON.parse(localStorage.getItem(k)).leveling.maps.find(m=>m.map==='lorencia').spots[0].x,key),88);await standalone.close();
  // Exercise the real scheduler with a buff pending exactly at the next threshold.
@@ -27,7 +27,26 @@ const {chromium}=require('../scripts/browser-runtime.cjs'),assert=require('node:
  assert.match(await runtime.locator('#commands').textContent(),/\/move arena/);assert.equal(await runtime.evaluate(()=>__world.castRequest),null);assert.equal(await runtime.evaluate(()=>__store.muHelper.active),false);await runtime.clock.runFor(1000);assert.equal(await runtime.evaluate(()=>__world.mapIndex),6);
  await runtime.evaluate(()=>{__world.playerEntity.transform.pos={x:12,z:39};});await runtime.clock.runFor(1000);assert.equal(await runtime.evaluate(()=>__store.muHelper.active),true);
  await runtime.evaluate(()=>{__store.playerData.level=170;});await runtime.clock.runFor(2000);assert.match(await runtime.locator('#commands').textContent(),/\/move icarus/);await runtime.close();
- console.log('PASS all maps; draft migration; capture identity/map/ambiguity; duplicate/delete; save/reload/cancel; no Play; narrow editor');
+ // F10 must reach Home without a duplicate warp in an already selected Devias spot.
+ const devias=await browser.newPage();await devias.clock.install();await devias.goto(pathToFileURL(path.resolve('demos/helper/preview.html')).href);
+ const deviasLeveling={version:1,maps:LEVEL_MAPS.map(m=>({map:m.id,enabled:m.id==='devias2',level:m.minLevel,spots:m.id==='devias2'?[{x:30,y:40,enabled:true},{x:60,y:70,enabled:true}]:[]}))};
+ await devias.evaluate(({key,value})=>localStorage.setItem(key,JSON.stringify(value)),{key,value:{...DEFAULTS,version:1,leveling:deviasLeveling,soulShield:false,sendParty:false,acceptParty:false}});await devias.reload();
+ await devias.evaluate(()=>{
+  __store.playerData.level=30;__world.mapIndex=2;__world.playerEntity.worldIndex=2;
+  __world.playerEntity.transform.pos={x:30,z:40};__world.playerEntity.playerMoveTo={point:{x:30,y:40},handled:true};
+  window.demoWarps=[];__store.warpCommandRequest=index=>{demoWarps.push(index);return true;};
+  const send=__social.sendChat.bind(__social);__social.sendChat=text=>{if(/^\/move /.test(text))demoWarps.push(text);return send(text);};
+ });
+ const deviasPlay=devias.locator('#mu-helper-quick-control .play');
+ for(let visit=0;visit<2;visit++){
+  await devias.keyboard.press('F10');await devias.clock.runFor(2000);
+  assert.equal(await deviasPlay.getAttribute('aria-pressed'),'true');assert.equal(await devias.evaluate(()=>__store.muHelper.active),true);
+  assert.deepEqual(await devias.evaluate(()=>demoWarps),[]);assert.match(await devias.locator('#mu-level-helper .status').textContent(),/Devias 2 30, 40/);
+  await devias.keyboard.press('F10');await devias.clock.runFor(1000);
+  assert.equal(await deviasPlay.getAttribute('aria-pressed'),'false');assert.equal(await devias.evaluate(()=>__store.muHelper.active),false);
+ }
+ await devias.close();
+ console.log('PASS all maps; draft migration; capture identity/map/ambiguity; duplicate/delete; save/reload/cancel; no Play; narrow editor; Devias 2 F10 start/resume without warp');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
 
 

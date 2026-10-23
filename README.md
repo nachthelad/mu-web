@@ -1,3 +1,35 @@
+## Kanturu y Fenrir · Compatibilidad del cliente
+
+Helper 1.31.4 actualiza el puente de conexión y las estadísticas para `index-C5JIMxmo.js` / `layout-A1P3A0u1.js`. Conserva los builds anteriores y C/V con Play pausado. El nombre de ítem usa ahora el export auditado `fg`. Usá el paquete generado en `dist` y recargá extensión y juego. Validación local sin cuenta real; partida real pendiente. [Evidencia](docs/client-kanturu.md).
+
+## Aida y Dark Lord · Extensión 1.0.45
+
+Actualiza la conexión al cliente del 22/10 (index-D-gOSya0 / layout-DCITLqBq), estadísticas y C/V. Radar muestra Aida para el mapa 33. Helper reconoce los mínimos reducidos de traslado de Dark Lord y Lord Emperor. Usá el ZIP generado en dist, reemplazá los archivos de la carpeta instalada, recargá la extensión y después el juego. Validación local sin cuenta real; partida real pendiente. [Evidencia](docs/client-oct22.md).
+
+## Helper 1.31.2 · Segundo cliente del 21/10
+
+El cliente volvió a cambiar a index-Do3IjarP / layout-CoOAKkh-. Se actualizan juntos el puente de identidad y las estadísticas, conservando el adaptador anterior. Si aparece «Cliente no compatible», reemplazá los archivos de la carpeta instalada por el nuevo paquete de `dist`, recargá la extensión y después el juego. Validación con fixtures aislados; partida real pendiente.
+
+## Helper 1.31.1 · Estadísticas y C/V del 21/10
+
+Estadísticas detalladas y Permitir C e inventario juntos reconocen el cliente index-URnTVW_1 / layout-DQbdTT-G. El cálculo usa el staff principal como Character Info y conserva los porcentajes/opciones separados. Ambos switches funcionan con Play pausado; no abren ventanas. La primera cuenta detectada informa «cuenta conectada; inicio manual», sin confundirla con un cambio de cuenta. El puente de identidad se conserva. Validación local con fórmulas y cierres nativos extraídos; partida real pendiente. [Auditoría y límites](docs/character-stats-client.md).
+
+## Extensión Chrome 1.0.42 · Compatibilidad con el cliente del 21/10
+
+La extensión vuelve a resolver cuenta/personaje con index-URnTVW_1.js / layout-DQbdTT-G.js, que ya no publica los globals anteriores. Reutiliza los singletons exportados por el cliente y conserva motores, ajustes e identidad. Un build desconocido muestra un diagnóstico y mantiene las acciones bloqueadas. Alcance: extensión Chrome; los userscripts independientes no incorporan este adaptador. Validación en fixtures sin cuenta real; usar el paquete generado en `dist` y recargar extensión y juego para actualizar.
+
+## Helper 1.31.0 · Recogida independiente de Kundun
+
+En Obtener, activá **Recoger cajas Kundun (+1 a +5)** y Guardar, junto con Activar loot del addon. Reconoce el tipo real sin escribir nombres ni exigir Excellent/Luck. Usa el rango desde el personaje y puede recoger fuera del spot; durante una recogida pendiente posterga el retorno al spot. Requiere Play y Home activos y todos los filtros de recogida nativos apagados. Cambios de etapa, viajes, reset y clics manuales conservan prioridad. Validado en simulación local; aceptación del servidor en partida pendiente.
+
+## Helper 1.30.1 · Extensión Chrome 1.0.39
+
+Nueva distribución local del Helper con programación horaria. Se incrementa la versión para distinguirla de la extensión 1.0.38 anterior; la lógica del reloj de Helper 1.30.0 se conserva. El release oficial genera la carpeta canónica dist/chrome-extension, el ZIP y sus manifiestos juntos.
+
+## Helper 1.30.0 · Programación diaria en hora de Argentina
+
+Configuración → Leveleo → Programación: elegí inicio y fin y pulsá Guardar programación. Deshabilitada por defecto (02:00–06:00), admite medianoche y conserva pausa manual tras recargar. F10/Play respetan la franja; los fallos no causan reinicios repetidos. Caza conserva su control independiente. [Política, almacenamiento y límites](docs/daily-schedule.md). Validación local sin cuenta real; partida real pendiente.
+
 ## Helper 1.29.5 · Configuración visible y casco persistente
 
 Todas las secciones del panel externo mantienen los ajustes visibles al Guardar o Cancelar. Ocultar casco ahora es un switch que se guarda automáticamente por cuenta y se restaura al recargar. Alas sigue requiriendo Guardar.

@@ -3,9 +3,9 @@ const {LEVEL_MAPS,levelPath,validPath,validPreferences,route,Cycle,DEFAULTS,LOOT
 const path=[{map:'lorencia',level:10,x:47,y:59},{map:'atlans3',level:110,x:65,y:160},{map:'icarus',level:190,x:43,y:155}];
 const prefs={version:1,...DEFAULTS,path,loot:{...LOOT_DEFAULTS,enabled:true,namesEnabled:true},excellentNames:['dragon']};
 const state=(patch={})=>({ready:true,name:'Hero',level:10,map:0,warpSerial:0,position:{x:47,y:59},...patch});
-test('26 destinations match the supplied minima and preserve legacy spots/toggles',()=>{
- assert.equal(LEVEL_MAPS.length,26);assert.equal(new Set(LEVEL_MAPS.map(m=>m.id)).size,26);
- assert.deepEqual(LEVEL_MAPS.map(m=>m.minLevel),[50,10,10,20,20,20,20,30,40,50,100,200,300,50,50,50,60,60,70,70,70,80,90,140,140,170]);
+test('32 destinations match the supplied minima and preserve legacy spots/toggles',()=>{
+ assert.equal(LEVEL_MAPS.length,32);assert.equal(new Set(LEVEL_MAPS.map(m=>m.id)).size,32);
+ assert.deepEqual(LEVEL_MAPS.map(m=>m.minLevel),[50,10,10,20,20,20,20,30,40,50,100,200,300,50,50,50,60,60,70,70,70,80,90,140,140,170,140,170,150,150,190,210]);
  assert.deepEqual(levelPath({...DEFAULTS,arena:false,spots:{...DEFAULTS.spots,lorencia:{x:105,y:81}}}),[{map:'lorencia',level:10,x:105,y:81},{map:'icarus',level:170,x:43,y:155}]);
  assert.deepEqual(lootPolicy({excellentLoot:true}),{...LOOT_DEFAULTS,enabled:true,namesEnabled:true});
 });

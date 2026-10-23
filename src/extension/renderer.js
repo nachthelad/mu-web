@@ -1,6 +1,6 @@
 // Safe incremental DOM projection. Never inject HTML, script, URLs or listeners.
 const TAGS=new Set('div span p section aside header footer h1 h2 h3 h4 button input textarea select option optgroup label details summary fieldset legend strong b i em small br hr ul ol li table thead tbody tr th td progress canvas svg path circle rect line polyline polygon g title style'.split(' '));
-const attrOK=name=>/^(?:id|class|style|role|title|type|name|value|min|max|step|rows|cols|placeholder|for|tabindex|disabled|hidden|checked|selected|open|width|height|viewBox|d|fill|stroke|stroke-width|cx|cy|r|x|y|x1|x2|y1|y2|points|aria-[\w-]+|data-[\w-]+)$/.test(name);
+const attrOK=name=>/^(?:id|class|style|role|title|type|name|value|min|max|step|rows|cols|size|placeholder|for|tabindex|disabled|hidden|checked|selected|open|width|height|viewBox|d|fill|stroke|stroke-width|cx|cy|r|x|y|x1|x2|y1|y2|points|aria-[\w-]+|data-[\w-]+)$/.test(name);
 // Presentation only: keep the serialized ancestry and original controls intact.
 // Grid spans lay out the map editor and its summary without reparenting nodes.
 const CSS=`
@@ -133,6 +133,10 @@ export class Renderer{
       if(e.__muForwarded)return;const {t,id}=target(e);if(!id)return;
       if(t.matches?.('[data-tab]')&&['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){
         const tabs=[...t.parentNode.querySelectorAll('[data-tab]')],index=tabs.indexOf(t),next=e.key==='Home'?tabs[0]:e.key==='End'?tabs.at(-1):tabs[(index+(e.key==='ArrowLeft'?-1:1)+tabs.length)%tabs.length];e.__muForwarded=true;e.preventDefault();e.stopPropagation();next.focus();next.click();return;
+      }
+      if(t.matches?.('input[data-map-search]')&&['ArrowUp','ArrowDown','Enter','Escape'].includes(e.key)){
+        if(e.isComposing||e.key==='Escape'&&t.getAttribute('aria-expanded')!=='true')return;
+        e.__muForwarded=true;e.preventDefault();e.stopPropagation();this.send({node:id,event:'keydown',key:e.key,selection:this.selection()});return;
       }
       if(e.key!=='Enter'||!t.matches?.('input.new-name'))return;e.__muForwarded=true;e.preventDefault();e.stopPropagation();this.send({node:id,event:'keydown',key:'Enter',selection:this.selection()});
     });

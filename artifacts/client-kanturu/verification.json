@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-10-22T22:00:55.312Z",
+  "publicEntry": "index-C5JIMxmo.js",
+  "publicLayoutSha256": "9ba0a87ade11cb00012f7895ef26c567aea56adda7ce8db74d07ee6d0176e94d",
+  "muWeb": {
+    "version": "1.0.46",
+    "set": "2026-10-22T21-59-39-503Z-0ec3c2",
+    "zipSha256": "9458dd5f13e081b7ac3b4b5a4a97a4795f20dbd13aa619b7e85a4d0f6bc7082d"
+  },
+  "bk": {
+    "version": "0.1.8",
+    "zipSha256": "8f4aae07652612f4b60c5c6ac1d9a839dcbcba983ae580cceef1f5ae2d8bfed7"
+  },
+  "limits": "No real game account, server commands, browser installation, push or public release."
+}

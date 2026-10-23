@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-22T21:46:08.912Z",
+  "entry": "index-C5JIMxmo.js",
+  "assets": [
+    "layout-A1P3A0u1.js",
+    "boot-BJb3X1Q4.js"
+  ],
+  "hashes": {
+    "root.html": "c3d7b966e3c3482eca2dc2269913ffaae6ca06f527d0a401921a8b4b33910086",
+    "entry.js": "718afd9e38d6e9ccb90b7894e9e1553d14857512e47a49eae7366796472fb84a",
+    "layout.js": "9ba0a87ade11cb00012f7895ef26c567aea56adda7ce8db74d07ee6d0176e94d",
+    "boot.js": "6aff122a4181f909ea52ccad6c87298b76a0f4031049ee886a05501612963ef0",
+    "ui.js": "36b341117c650faa169504f35226efcb8a6feb384f34e445f5771e4effa49dec",
+    "packets.js": "0f410ee99236334a5c086d15ce29062dd9b83691ea667f02f7c992e5661869c6"
+  },
+  "exports": {
+    "store": "f as n",
+    "social": "K as V",
+    "bus": "x as aw",
+    "calculate": "U5t as b1",
+    "catalog": "No as bU",
+    "slots": "re as aL",
+    "itemStats": "Gg as nF",
+    "tooltip": "MNt as nH",
+    "name": "mk as fg"
+  },
+  "ui": "/assets/index-CSWR8x1U.js",
+  "packets": "/assets/packets-BVlj3W9O.js",
+  "limitations": "Static public audit and extracted fixtures only; no real account or server commands."
+}

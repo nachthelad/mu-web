@@ -13,7 +13,22 @@ const path=require('node:path');
     await page.goto(pathToFileURL(path.resolve(__dirname,'../demos/radar/preview.html')).href);
     const radar=page.locator('#mu-golden-radar');
     assert.equal(await radar.count(),1);
-    for(const [map,name] of [[83,'Arena 2'],[84,'Arena 3'],[85,'Arena 4'],[6,'Arena'],[999,'Mapa 999'],[0,'Lorencia']]){
+    for(let floor=1;floor<=6;floor++){
+      await page.evaluate(map=>{window.__world.mapIndex=map;},23+floor);
+      await page.waitForFunction(name=>document.getElementById('mu-golden-radar').shadowRoot.querySelector('.mapline').textContent.startsWith(name),`Kalima ${floor}`);
+      assert.equal(await radar.locator('.kalima-reference').isVisible(),true);
+      assert.match(await radar.locator('.kalima-reference').innerText(),/Spawn de referencia: 26, 76.*sin confirmar.*No indica si está vivo/);
+    }
+    await page.evaluate(()=>{window.__world.netObjsQuery.entities=[{netId:501,npcType:275,transform:{pos:{x:32,z:88}}}];});
+    await page.waitForFunction(()=>document.getElementById('mu-golden-radar').shadowRoot.querySelector('.rows').textContent.includes('Kundun'));
+    assert.match(await radar.locator('.rows').innerText(),/Kundun[\s\S]*32, 88[\s\S]*ahora/);
+    assert.equal(await page.evaluate(()=>{let radar;const listener=e=>{if(e.detail.id==='radar')radar=e.detail;};window.addEventListener('mu-hub:register',listener);window.dispatchEvent(new CustomEvent('mu-hub:discover'));window.removeEventListener('mu-hub:register',listener);return radar.actions.huntingData().live.length;}),0);
+    await page.screenshot({path:'docs/screenshots/kalima-radar.png'});
+    await page.evaluate(()=>{window.__world.netObjsQuery.entities[0].dying=true;});
+    await page.waitForFunction(()=>!document.getElementById('mu-golden-radar').shadowRoot.querySelector('.rows').textContent.includes('Kundun'));
+    await page.reload();
+    assert.equal(await radar.locator('.kalima-reference').isVisible(),false);
+    for(const [map,name] of [[33,'Aida'],[83,'Arena 2'],[84,'Arena 3'],[85,'Arena 4'],[6,'Arena'],[999,'Mapa 999'],[0,'Lorencia']]){
       await page.evaluate(map=>{window.__world.mapIndex=map;},map);
       await page.waitForFunction(name=>document.getElementById('mu-golden-radar').shadowRoot.querySelector('.mapline').textContent===`${name} · 125, 128`,name);
     }

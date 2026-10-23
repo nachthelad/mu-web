@@ -1,3 +1,13 @@
+## Helper 1.31.0 · Kundun en Obtener
+
+`loot.kundun` opcional y false por defecto conserva almacenamiento/contrato v1. El control canónico data-loot se proyecta al panel externo con Guardar/Cancelar existentes. Identificación por item group 14, num 11, lvl 8–12; el group/num del modelo visual no interviene. Ignora lista y requisitos de nombre solo para la categoría dedicada.
+
+ExcellentLoot conserva el único pending y los controles manuales. El refresh anticipa una sola evaluación cuando Kundun está habilitado, hay stage elegido y no hay buff, transición, viaje/reset pendiente ni caza. Una recogida Kundun pendiente difiere cycle.step y serviceHelper, sin iniciar Home, manteniendo el progreso temporal de ruta. La evaluación normal se conserva para preferencias anteriores; el radio del spot y settled siguen aplicándose a los otros items. Sin nuevos timers/comandos. Rechazos dedicados tienen dos reintentos a 2 s antes del cooldown habitual de 60 s. Ver tests/kundun-loot.test.cjs y tests/kundun-loot-ui.cjs; partida real pendiente.
+
+## Helper 1.30.0 · Programación por cuenta
+
+Campo opcional schedule v1 en preferencias y registro operativo separado por mundo/cuenta. El refresh existente evalúa hora IANA Argentina; Play/F10 y paneles comparten inicio/pausa. Restaurar preferencias solo puede iniciar si la programación fue habilitada explícitamente y no hay inhibición vigente; las restantes preferencias siguen sin iniciar Play. Guardar programación actualiza la base de la transacción para conservarse tras Cancelar/rollback. [Diseño, claves, política y límites](daily-schedule.md).
+
 # Estadísticas · Helper 1.29.3
 
 mountStats solo modifica statsHost/statsPanel. No conserva ni restaura estilos de C/V ni escribe posiciones nativas. Mide el rect/escala de C para encajar el detalle adjunto; el cliente conserva arrastre, bloqueo y almacenamiento de ventanas.

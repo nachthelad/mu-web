@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "MU · Addons locales",
+  "version": "1.0.46",
+  "minimum_chrome_version": "120",
+  "description": "Radar, Helper, Config, Analytics, Interface y HUB para MU.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mu.mormon.garden/*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://mu.mormon.garden/*"
+      ],
+      "js": [
+        "golden-radar.user.js",
+        "level-helper.user.js",
+        "config.user.js",
+        "analytics.user.js",
+        "interface.user.js",
+        "hub.user.js"
+      ],
+      "run_at": "document_idle",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://mu.mormon.garden/*"
+      ],
+      "js": [
+        "content-bridge.js"
+      ],
+      "run_at": "document_idle",
+      "world": "ISOLATED",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "Abrir centro de control MU"
+  },
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "host_permissions": [
+    "https://mu.mormon.garden/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'"
+  }
+}

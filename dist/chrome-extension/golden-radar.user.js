@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MU · Golden Radar
 // @namespace    local.mu.golden-radar
-// @version      1.9.2
+// @version      1.9.4
 // @description  Radar local de dragones recibidos por el cliente durante Golden Invasion.
 // @match        https://mu.mormon.garden/*
 // @run-at       document-idle
@@ -11,7 +11,10 @@
 (function () {
   'use strict';
   const DRAGONS = new Map([[43,"Golden Budge Dragon"],[44,"Golden Dragon"],[53,"Golden Titan"],[54,"Golden Soldier"],[78,"Golden Goblin"],[79,"Golden Derkon"],[80,"Golden Lizard King"],[81,"Golden Vepar"],[82,"Golden Tantallos"],[83,"Golden Wheel"],[493,"Golden Dark Knight"],[494,"Golden Devil"],[495,"Golden Stone Golem"],[496,"Golden Crust"],[497,"Golden Satyros"],[498,"Golden Twin Tail"],[499,"Golden Iron Knight"],[500,"Golden Napin"],[501,"Great Golden Dragon"],[502,"Golden Rabbit"]]);
-  const MAPS = {0:'Lorencia',1:'Dungeon',2:'Devias',3:'Noria',4:'Lost Tower',6:'Arena',7:'Atlans',8:'Tarkan',10:'Icarus',83:'Arena 2',84:'Arena 3',85:'Arena 4'};
+  const MAPS = {0:'Lorencia',1:'Dungeon',2:'Devias',3:'Noria',4:'Lost Tower',6:'Arena',7:'Atlans',8:'Tarkan',10:'Icarus',24:'Kalima 1',25:'Kalima 2',26:'Kalima 3',27:'Kalima 4',28:'Kalima 5',29:'Kalima 6',33:'Aida',83:'Arena 2',84:'Arena 3',85:'Arena 4'};
+  // OpenMU map definitions; the server may customize the spawn, so this is only a reference.
+  const KALIMA_BOSSES=new Map([[161,'Illusion of Kundun'],[181,'Illusion of Kundun'],[189,'Illusion of Kundun'],[197,'Illusion of Kundun'],[267,'Illusion of Kundun'],[338,'Illusion of Kundun'],[275,'Kundun']]);
+  function kalimaReference(map){return Number.isInteger(map)&&map>=24&&map<=29?{x:26,y:76,name:map===29?'Illusion / Kundun':'Illusion of Kundun'}:null;}
   const TTL = 90000;
   const INVADERS=new Map([[42,'Red Dragon'],[135,'White Wizard'],[136,'Destructive Soldier'],[137,'Destructive Archer']]);
   function visibleInvaders(data,whiteWizard,redDragon){const visible=row=>row.type===42?redDragon:whiteWizard;return {...data,live:data.live.filter(visible),recent:data.recent.filter(visible)};}
@@ -123,7 +126,7 @@
     clear(){this.value=null;this.signature=null;}
     read(clock,title,now){const data=hudInvasion(clock,title),signature=JSON.stringify(data);if(!data.active){const ended=!!this.value;this.clear();return {ended};}if(signature!==this.signature){this.signature=signature;this.value={...data,at:now};}return now-this.value.at<=900000?{...this.value,maps:this.value.maps.map(m=>({...m}))}:{};}
   }
-  const core={hudInvasion,HudInvasion,invasionMonsters,countdown,Tracker,Archive,position,invasionPacket,goldenNotice,GoldenEvent,DRAGONS,INVADERS,visibleInvaders,TTL,HISTORY_KEY,HISTORY_LIMIT};
+  const core={MAPS,KALIMA_BOSSES,kalimaReference,hudInvasion,HudInvasion,invasionMonsters,countdown,Tracker,Archive,position,invasionPacket,goldenNotice,GoldenEvent,DRAGONS,INVADERS,visibleInvaders,TTL,HISTORY_KEY,HISTORY_LIMIT};
   if (typeof module==='object' && module.exports && typeof document==='undefined') { module.exports=core; return; }
   if (location.hostname!=='mu.mormon.garden' && !window.__GOLDEN_RADAR_DEMO__) return;
   if (document.getElementById('mu-golden-radar')) return;
@@ -132,7 +135,7 @@
   window[instanceKey]=true;
   console.info('[Golden Radar] Iniciando versión 1.4.0');
 
-  const host=document.createElement('div'); host.id='mu-golden-radar';host.dataset.version='1.9.1';
+  const host=document.createElement('div'); host.id='mu-golden-radar';host.dataset.version='1.9.3';
   host.style.cssText='position:fixed;top:76px;left:14px;z-index:2147483000;pointer-events:auto;max-height:calc(100dvh - 90px);';
   const root=host.attachShadow({mode:'open'});
   root.innerHTML=`<style>
@@ -152,6 +155,8 @@
   if (window.__GOLDEN_RADAR_DEMO__) $('.demo').hidden=false;
   const tracker=new Tracker();
   const invaders=new Tracker(INVADERS);
+  const kalimaBosses=new Tracker(KALIMA_BOSSES);
+  const referenceNote=document.createElement('p');referenceNote.className='kalima-reference';referenceNote.hidden=true;referenceNote.style.cssText='font:11px Verdana,sans-serif;color:#d6a8ff;line-height:1.5';$('.body').insertBefore(referenceNote,$('.rows'));
   let storage;try{storage=window.localStorage;}catch{storage=null;}
   const archive=new Archive(storage,window.__GOLDEN_RADAR_DEMO__?'mu.golden-radar.demo-sightings.v1':HISTORY_KEY);
   const historyUI=document.createElement('details');historyUI.className='archive';
@@ -314,7 +319,12 @@
       if (lastHero!==world?.playerEntity) {signal=null;lastHero=world?.playerEntity;}
       const data=tracker.scan(world,now,true);
       const extra=visibleInvaders(invaders.scan(world,now),whiteVisible,redVisible);
-      const displayed={...data,live:[...data.live,...extra.live].sort((a,b)=>a.distance-b.distance),recent:[...data.recent,...extra.recent]};
+      const reference=data.player?kalimaReference(world.mapIndex):null;
+      // Scan through the same scheduler and reset outside Kalima; never feed bosses into golden hunt/archive.
+      const bosses=kalimaBosses.scan(reference?world:null,now);
+      referenceNote.hidden=!reference;
+      referenceNote.textContent=reference?`◇ ${reference.name} · Spawn de referencia: 26, 76 (OpenMU; sin confirmar en este servidor). No indica si está vivo.`:'';
+      const displayed={...data,live:[...data.live,...extra.live,...bosses.live].sort((a,b)=>a.distance-b.distance),recent:[...data.recent,...extra.recent,...bosses.recent]};
       renderCounter(now,data.player);
       huntSnapshot={map:world?.mapIndex,live:data.live,recent:data.recent,seen:now};
       window.dispatchEvent(new CustomEvent('mu-radar:hunting',{detail:{seen:now}}));
@@ -330,11 +340,14 @@
       renderRows(displayed,now);
       if(!host.classList.contains('collapsed')){
         background(world,data.player);
+        if(reference){ctx.save();ctx.translate(reference.x*2,(256-reference.y)*2);ctx.rotate(Math.PI/4);ctx.strokeStyle='#d6a8ff';ctx.lineWidth=2;ctx.strokeRect(-7,-7,14,14);ctx.restore();}
         if(historicVisible)for(const row of historical){const x=row.x*2,y=(256-row.y)*2;ctx.strokeStyle='#8bbade';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-4,y);ctx.lineTo(x+4,y);ctx.moveTo(x,y-4);ctx.lineTo(x,y+4);ctx.stroke();}
         for(const row of data.recent)dot(row,'#a8a184',true);
         for(const row of data.live)dot(row,'#ffc85c');
         for(const row of extra.recent)dot(row,invaderColor(row),true);
         for(const row of extra.live)dot(row,invaderColor(row));
+        for(const row of bosses.recent)dot(row,'#d6a8ff',true);
+        for(const row of bosses.live)dot(row,'#d6a8ff');
         if(data.player){ctx.save();ctx.translate(data.player.x*2,(256-data.player.y)*2);ctx.rotate(Math.PI/4);ctx.fillStyle='#81dbe0';ctx.fillRect(-6,-6,12,12);ctx.restore();}
       }
       $('.tab').title=active?'Radar · invasión activa':'Mostrar radar';$('.tab').style.borderColor=active?'#a4c880':'#76633d';
@@ -374,7 +387,7 @@
   window.addEventListener('mu-hub:discover',registerHub);registerHub();
   const timer=setInterval(tick,250);
   function destroy(remove) {
-    stopped=true;clearInterval(timer);tracker.clear();invaders.clear();counter.remove();window.removeEventListener('resize',counterFit);
+    stopped=true;clearInterval(timer);tracker.clear();invaders.clear();kalimaBosses.clear();counter.remove();window.removeEventListener('resize',counterFit);
     if(bus){bus.off('InvasionMonsters',onMonsters);bus.off('MapEventState',onInvasion);bus.off('ServerMessage',onNotice);bus.off('requestWarp',onWarp);bus.off('warpCompleted',onWarp);}
     window.removeEventListener('resize',fitPosition);window.removeEventListener('pagehide',onPageHide);if(remove)host.remove();
   }

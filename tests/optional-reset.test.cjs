@@ -7,8 +7,8 @@ test('reset keeps its historical enabled default and accepts only boolean prefer
  for(const value of [0,1,null,'false'])assert.equal(validPreferences({...prefs,autoReset:value}),false);
  const c=new Cycle();c.start(s,0);assert.equal(c.step(s,0).text,'/reset');
 });
-test('disabled reset continues the last leveling spot at 400 and above, enabling later sends once',()=>{
- const c=new Cycle({autoReset:false});c.start(s,0);for(const [now,level] of [[0,400],[5000,400],[10000,401]]){const action=c.step({...s,level},now);assert.equal(action.kind,'helper');assert.equal(action.spot.id,'icarus');assert.equal(c.pending,null);assert.equal(c.running,true);}
+test('disabled reset delegates to farming without Home at 400 and above; enabling reset sends once',()=>{
+ const c=new Cycle({autoReset:false});c.start(s,0);for(const [now,level] of [[0,400],[5000,400],[10000,401]]){const action=c.step({...s,level},now);assert.equal(action.kind,'farm');assert.equal(c.pending,null);assert.equal(c.running,true);}
  c.config.autoReset=true;assert.equal(c.step(s,15000).text,'/reset');assert.equal(c.step(s,16000),null);
 });
 test('a sent reset still waits for confirmation when the preference is disabled',()=>{

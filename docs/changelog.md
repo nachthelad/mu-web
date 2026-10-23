@@ -1,3 +1,62 @@
+## 2026-10-22 · Helper 1.31.4 · Cliente Kanturu y Fenrir
+
+- Conexión al par auditado `index-C5JIMxmo` / `layout-A1P3A0u1`, con las validaciones de identidad originales y bloqueo de builds desconocidos.
+- Estadísticas: Character Info usa `U5t=b1`; nombre de ítem pasa a `mk=fg` (el antiguo `fd` corresponde a otra función). Mantiene catálogo `bU`, slots `aL`, propiedades `nF` y tooltip `nH`.
+- Fixtures nuevas extraen fórmulas, catálogo con Fenrir y registro nativo C/V `Ot/Z0`; pruebas de carga tardía, identidad, A/B, cierres y restauración obligatorias para este build.
+- Sin instalación ni cuenta real. Auditoría y límites en `client-kanturu.md`.
+
+## 2026-10-22 · Helper 1.31.3 / Radar 1.9.4 / extensión 1.0.45
+
+- Conexión: par explícito index-D-gOSya0 / layout-DCITLqBq; mantiene n/V/aw, getter world, validación de interfaces y rechazo de builds desconocidos.
+- Estadísticas y C/V: propiedades nF, tooltip nH y nombre fd auditados; conserva A/B, posiciones y controles nativos.
+- Radar: Aida (mundo 33) en minimapa y desglose de invasión.
+- Helper: mínimos reducidos de traslados para Dark Lord 16 y Lord Emperor 17, según fórmula nativa.
+- Fixtures extraídas del cliente público y suites locales sin cuenta real; partida real pendiente. Ver client-oct22.md.
+
+## 2026-10-21 · Helper 1.31.2 · Segundo build del día
+
+- La raíz pública cambió otra vez, a index-Do3IjarP / layout-CoOAKkh-. Se agrega el build auditado al puente de identidad y al lector de estadísticas; conserva URnTVW/DQbdTT y los adaptadores anteriores.
+- Exports comprobados n/V/aw y b1/bU/aL/nC/nE/fd; getters y validaciones de identidad permanecen iguales. Cálculo principal, tooltip y reacciones C/V extraídos coinciden con el build anterior; el catálogo cambia requisitos de objetos. No se usan semejanzas de nombres ni detección abierta de módulos.
+- Pruebas de puente y Helper ejecutadas para ambos builds, con módulos extraídos y carga tardía compartida, degradación desconocida/incompleta, identidad, C/V y A/B. Sin cuenta real ni instalación automática.
+- Release local `2026-10-21T22-14-56-309Z-24c91c`, extensión **1.0.44**: sintaxis, 230 pruebas de lógica y todas las suites UI obligatorias aprobadas. Raíz pública y hash del layout revalidados al finalizar; fuente/dist/paquete y ZIP reproducible con checksum comprobados.
+
+## 2026-10-21 · Helper 1.31.1 · Estadísticas y coexistencia C/V
+
+- Adaptador explícito index-URnTVW_1 / layout-DQbdTT-G: QCt=b1, No=bU, se=aL, zg=nC, I5t=nE y ek=fd. Conserva builds anteriores y validación de interfaces; un export incompleto o build desconocido no se acepta.
+- Wizardry depende ahora del slot principal 0 en este build. Retira la advertencia antigua para esa mano; no multiplica el rango por el porcentaje ni suma opciones. Un slot pendiente ya no se convierte en vacío. Capturas A/B y actualización por equipo se conservan.
+- C/V vuelve a instalar el hook acotado existente. Se reproduce primero la exclusividad del registro jt/G0 de index-deEbYU8n, después coexistencia en ambos órdenes, cierres explícitos y restauración. No modifica posiciones, escalas, controles ni atajos nativos.
+- Primera detección de cuenta después del puente tardío informa «Pausado: cuenta conectada; inicio manual». Cambios posteriores de cuenta/mundo conservan pausa y aislamiento. No modifica page-bridge ni inicia Play.
+- Auditoría pública, fixtures extraídos y suite integrada de puente+Helper sin cuenta real. Evidencia y límites en docs/character-stats-client.md; partida real pendiente.
+- Release local `2026-10-21T22-03-29-389Z-ac6fe5`, extensión **1.0.43**: sintaxis, 228 pruebas de lógica y todas las suites UI obligatorias aprobadas. La repetición completa con acceso permitido a localhost resolvió el bloqueo del sandbox. Fuentes/dist/paquete/ZIP/checksum y puente sin cambios verificados.
+
+## 2026-10-21 · Extensión Chrome 1.0.42 · Compatibilidad del cliente
+
+- Adaptador en page-bridge para index-URnTVW_1.js / layout-DQbdTT-G.js: reutiliza los exports n (estado), V (social) y aw (eventos) del módulo nativo. El mundo se consulta desde estado.world, incluso si cambia o está pendiente. No inicia otro juego ni añade motores o intervalos.
+- Conserva la ruta legacy y presenta errores de compatibilidad explícitos en el panel. Sin cambios de claves, preferencias, permisos o contrato v1. Los userscripts independientes mantienen su distribución actual.
+- Pruebas aisladas para carga tardía, singleton, mundo reemplazado, duplicados, build desconocido, export incompleto y error de carga; flujo completo del panel con cliente sin globals y segundo destino legacy. Partida real e instalación en Chrome habitual pendientes.
+- Release local `2026-10-21T21-45-32-356Z-0d0d17`: sintaxis, 225 pruebas de lógica y todas las suites obligatorias de interfaz aprobadas. Fuentes/paquete/ZIP y checksum verificados; instalable `dist/mu-web-chrome-1.0.42.zip`.
+
+## 2026-10-18 · Radar 1.9.3 · Kalima
+
+- Nombres Kalima 1–6 en mapas 24–29. Rombo violeta y texto para spawn de referencia en 26, 76, identificado como OpenMU sin confirmar en este servidor; no afirma presencia del jefe.
+- Illusion of Kundun y Kundun recibidos por el cliente aparecen en coordenadas reales y conservan rastros de 90 segundos. Se limpian al cambiar mapa/personaje o desconectarse; sin nuevos intervalos, comandos, claves ni cambios en caza/historial de dorados.
+- Validación local sin cuenta real; configuración del servidor y partida real pendientes. Discord del clan actualizado con la información aportada por el usuario.
+
+## 2026-10-18 · Helper 1.31.0 · Recoger cajas Kundun
+
+- Opción independiente en Obtener para Kundun +1 a +5, por group/num/lvl serializados, sin nombres ni requisitos Excellent/Luck. Apagada por defecto y transaccional mediante Guardar/Cancelar; campo opcional loot.kundun en preferencias v1.
+- Rango desde el personaje, sin exigir llegada/radio del spot. El mismo picker prioriza cajas y difiere el retorno al spot mientras una está pendiente; mantiene viajes, cambios de etapa, reset, caza y controles manuales.
+- Rechazos Kundun: hasta tres intentos espaciados por 2 segundos, luego cooldown de 60 segundos. Otros items conservan su política. Confirma inventario por respuesta coincidente, no por desaparición.
+- Estados de espera/recogida en Obtener. Pruebas de lógica y demo, persistencia, móvil y prioridad con Home activo; partida real pendiente. Sin instalación ni publicación web automática.
+
+## Helper 1.30.1 · Extensión Chrome 1.0.39
+
+Nueva distribución local del Helper con programación horaria. Se incrementa la versión para distinguirla de la extensión 1.0.38 anterior; la lógica del reloj de Helper 1.30.0 se conserva. El release oficial genera la carpeta canónica dist/chrome-extension, el ZIP y sus manifiestos juntos.
+
+## Helper 1.30.0 · Programación diaria en hora de Argentina
+
+Configuración → Leveleo → Programación: elegí inicio y fin y pulsá Guardar programación. Deshabilitada por defecto (02:00–06:00), admite medianoche y conserva pausa manual tras recargar. F10/Play respetan la franja; los fallos no causan reinicios repetidos. Caza conserva su control independiente. [Política, almacenamiento y límites](daily-schedule.md). Validación local sin cuenta real; partida real pendiente.
+
 ## Helper 1.29.5 · Configuración visible y casco persistente
 
 - Todas las secciones del panel externo mantienen la configuración visible tras Guardar, Cancelar o Escape.

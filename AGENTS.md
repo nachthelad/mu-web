@@ -1,5 +1,12 @@
 # Trabajo en mu-web
 
+## Arquitectura de extensión y variantes
+
+- Para crear una extensión independiente en otra carpeta, usar [la guía autocontenida](docs/standalone-extension-AGENTS.md) como `AGENTS.md` del proyecto nuevo. No necesita instalar ni modificar esta extensión.
+- Antes de trabajar en integración con Chrome, puentes, panel externo o variantes por clase/personaje, leer [la guía de arquitectura](docs/extension-architecture.md).
+- Los motores viven en la pestaña del juego; worker, puentes y panel externo conservan su función de transporte/presentación. Reutilizar las fuentes canónicas y la coordinación de Home existente.
+- Actualmente Helper comparte preferencias entre personajes de una cuenta. Las estrategias por clase y los paquetes por variante descritos en la guía son propuestas, no funciones implementadas; cualquier nuevo alcance de perfiles requiere diseño explícito y conservación de datos.
+
 ## Preparación de pedidos
 
 - Para redactar o mejorar prompts destinados a otro chat, usar el skill `project-prompter` (`C:/Users/nacht/.codex/skills/project-prompter/SKILL.md`). El chat Prompter prepara el encargo; no ejecuta lo que describe salvo un pedido separado del usuario.
